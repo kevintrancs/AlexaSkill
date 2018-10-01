@@ -1,0 +1,149 @@
+/*
+* This code creates an in-browser tic-tac-toe game, as provided by facebook. Goes
+* over such concepts as functions, classes, arrays, props, action listeners,
+* good containment practice, and immutability concepts in JS. I've added my own
+* comments both as a means of keeping track of what's happening, and to show I didn't
+* just copy-paste the code from the website.
+*
+* Source: Tutorial: Intro to React
+*         https://reactjs.org/tutorial/tutorial.html
+* Author: Jason Conci
+* Date: 30 September 2018
+* Senior Design Background Research, Week 5
+*/
+
+//TODO: edit calculateWinner function to accept dynamic n-size board
+const boardNDimension = 3;
+
+// This was moved from a class to a function since it really doesn't do anything
+// but render, in which case one should use a function (stopped storing data)
+function Square(props){
+  return (
+    <button className = "square" onClick = {props.onClick}>
+      {props.value}
+     </button>
+  );
+}
+
+
+
+class Board extends React.Component {
+  /*We're doing this so we store the board state in board, rather
+  than inside each individual Square component, which is bad practice*/
+  constructor(props){
+    super(props);
+    this.state = {
+      squares: Array(9).fill(null),
+      xIsNext: true,
+    };
+  }
+  
+    
+  handleClick(i){
+    const squares = this.state.squares.slice();
+    /* This says if there's a winner, or all squares are occupied,
+    the game is over and we return */
+    if (calculateWinner(squares) || squares[i]) {
+      return;
+    }
+    // Set the square with the appropriate symbol
+    squares[i] = this.state.xIsNext ? 'X' : 'O';
+    // Update board values, and swap turns
+    this.setState({
+      squares: squares,
+      xIsNext : !this.state.xIsNext,
+    });
+  }
+  
+  
+  renderSquare(i) {
+    /*Now, rather than getting the value stored in the square, we're
+    telling the square to get its value from the Board it's contained in*/
+    return (
+      <Square
+        value={this.state.squares[i]}
+        onClick={() => this.handleClick(i)}
+      />
+    );
+  }
+
+  
+  render() {
+    // Every time we re-render, we check if there's a winner, and update
+    // the board's message accordingly.
+    const winner = calculateWinner(this.state.squares)
+    let status;
+    if (winner) {
+      status = 'Winner: ' + winner;
+    } else {
+      status = 'Next player: ' + (this.state.xIsNext ? 'X' : 'O');
+    }
+
+    return (
+      <div>
+        <div className="status">{status}</div>
+        <div className="board-row">
+          {this.renderSquare(0)}
+          {this.renderSquare(1)}
+          {this.renderSquare(2)}
+        </div>
+        <div className="board-row">
+          {this.renderSquare(3)}
+          {this.renderSquare(4)}
+          {this.renderSquare(5)}
+        </div>
+        <div className="board-row">
+          {this.renderSquare(6)}
+          {this.renderSquare(7)}
+          {this.renderSquare(8)}
+        </div>
+      </div>
+    );
+  }
+}
+
+class Game extends React.Component {
+  render() {
+    return (
+      <div className="game">
+        <div className="game-board">
+          <Board />
+        </div>
+        <div className="game-info">
+          <div>{/* status */}</div>
+          <ol>{/* TODO */}</ol>
+        </div>
+      </div>
+    );
+  }
+}
+
+// ========================================
+
+ReactDOM.render(
+  <Game />,
+  document.getElementById('root')
+);
+
+// function to calculate a winner (if there is one), all combinations
+// are explicitly coded in the tutorial.
+function calculateWinner(squares){
+  /*Winning combinations. Terrible code but it works*/
+  const lines = [
+    [0, 1, 2],
+    [3, 4, 5],
+    [6, 7, 8],
+    [0, 3, 6],
+    [1, 4, 7],
+    [2, 5, 8],
+    [0, 4, 8],
+    [2, 4, 6],
+  ];
+  for (let i = 0; i < lines.length; i++) {
+    const [a, b, c] = lines[i];
+    if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
+      return squares[a];
+    }
+  }
+  return null;
+}
