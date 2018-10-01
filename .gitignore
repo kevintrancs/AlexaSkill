@@ -27,7 +27,7 @@ MANIFEST
 
 .vscode/
 .DS_Store
-service
+services
 constants.json
 
 # PyInstaller
