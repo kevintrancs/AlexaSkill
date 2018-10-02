@@ -1,2 +1,3 @@
-# AlexaSkill
-Senior design project.
+# News Hub
+
+Currently working on tutorials and stuff.
