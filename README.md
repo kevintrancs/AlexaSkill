@@ -1,4 +1,4 @@
 # AlexaSkill
 
-Jason's practice
+Katie's practice
 Senior design project.
