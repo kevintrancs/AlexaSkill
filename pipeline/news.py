@@ -6,6 +6,7 @@ import boto3
 from boto3.dynamodb.conditions import Key
 import logging
 import time
+import hashlib
 
 # Default configs
 logging.basicConfig(level=logging.INFO)
@@ -16,10 +17,15 @@ with open('../server/constants.json') as f:
 
 headers = {"Ocp-Apim-Subscription-Key": CONSTANTS['azure_key']}
 db = boto3.resource('dynamodb')
-table = db.Table('News')
+table = db.Table('NewsHashed')
 
-db_client = boto3.client('dynamodb')
-table_client = db.Table('News')
+
+def generate_hashed_id(secret):
+    """
+    Generates and returns the SHA-256 hash of the string needed
+    """
+    sha256_obj = hashlib.sha256(secret)
+    return sha256_obj.hexdigest()
 
 
 def get_keyword(term):
@@ -61,17 +67,26 @@ def pull(q):
     cache_articles(data)
 
 
+def exists(hash_key):
+    """
+    Checks if the article already exists in our database
+    """
+    try:
+        item = table.get_item(id=hash_key)
+    except:  # if there is any error
+        item = None
+    return item
+
+
 def cache_articles(res):
     """
     Caches the articles found from a search into DynamoDB
     """
-    num = table.scan()
-    ind = num['Count']
-
     for article in res:
-        ind += 1
-        article['id'] = ind
-        table.put_item(Item=article)
+        hashed_id = generate_hashed_id(article['name'].encode('utf-8'))
+        if exists(hashed_id) is None:  # doesn't exist yet
+            article['id'] = hashed_id
+            table.put_item(Item=article)
 
 
 if __name__ == "__main__":
