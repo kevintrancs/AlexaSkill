@@ -8,14 +8,15 @@ from flask import json
 from flask import request
 from flask.logging import default_handler
 from flask_cors import CORS
-
+import boto3
 app = Flask(__name__)
 CORS(app)
 
 with open('./constants.json') as f:
     CONSTANTS = json.load(f)
 
-@app.route("/sysinfo", methods=['GET'])
+
+@app.route("/endpoint/lemma", methods=['GET'])
 def fullLemma():
     """
     Gets the full lemmas based off that search result
@@ -27,13 +28,25 @@ def fullLemma():
         json of list of full lemmas from search field
     """
     json_id = get_sys_ids(request.args.get('field'))
-    senses_url = "https://babelnet.io/v5/getSynset?id={}&key={}" 
-    r = requests.get(senses_url.format(json_id[0]['id'], CONSTANTS['babel_key']))
+    senses_url = "https://babelnet.io/v5/getSynset?id={}&key={}"
+    r = requests.get(senses_url.format(
+        json_id[0]['id'], CONSTANTS['babel_key']))
     res = r.json()
     full = []
     for item in res['senses']:
         full.append(item['properties']['fullLemma'])
     return Response(json.dumps({'fullLemma': full}), status=200, mimetype='application/json')
+
+
+@app.route("/endpoint/source", methods=['GET'])
+def sourced():
+    json_id = request.args.get('field')
+    dynamodb = boto3.resource('dynamodb')
+    table = dynamodb.Table('news')
+
+    response = table.scan()
+    return Response(json.dumps({'found': response}), status=200, mimetype='application/json')
+
 
 def get_sys_ids(search):
     """
@@ -53,6 +66,7 @@ def get_sys_ids(search):
     res = r.json()
     return res
 
+
 if __name__ == "__main__":
-    #0.0.0.0 cause public and shit
+    # 0.0.0.0 cause public and shit
     app.run(host='0.0.0.0')

@@ -31,14 +31,18 @@ and add
 
 _Will soon make more refined endpoints_
 Starting Babel-search server
+
+```
 cd ./server && python server.py
 localhost:5000/sysinfo?field={search_field}
+```
 
 Starting NewsAPI pipeline-search server
+
+```
 cd ./pipeline && python news.py
 localhost:8080/api?search={search_field}
+```
 
 Todo:
-Cache newsAPI results to AWS as dynamoDB in s3 probably?
-Cronjob for newsAPI pipeline to run daily
-Link pipeline/db with Endpoint
+Link babel fasted search on dynamodb
