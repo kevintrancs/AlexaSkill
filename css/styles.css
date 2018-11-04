@@ -1,0 +1,31 @@
+html, body {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+}
+
+.column_nav {
+    float: left;
+    display: flex;
+    flex-flow: column;
+    justify-content: space-between;
+    width: 20%;
+    height: 99%;
+    padding: 10px 10px;
+    background-color: lightblue;
+}
+
+.column_content {
+    display: flex;
+    justify-content: space-evenly;
+    margin-left: 20%;
+    padding-left:10px;
+    overflow-y: scroll;
+}
+
+.settings {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 20%;
+}

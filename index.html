@@ -1,9 +1,36 @@
 <!doctype html>
 <html lang="eng">
     <head>
-        <titke>CleverNews!</titke>
+        <meta charset='utf-8'>
+        <meta name='description' content='Personalized News Curation'>
+        <meta name='name' content="Clever News">
+        <link rel="stylesheet" type="text/css" href="css/styles.css">
+        <title>CleverNews!</title>
     </head>
     <body>
-        <h1> this is a new page</h1>
+        <div class="column_nav">
+            <ul class="feeds">
+                <li class="item" id ="hub"
+                onClick='document.getElementById("header_main").innerHTML = "Hello!"'>Hub</li>
+                <li class="item" id = "breaking!">Breaking!</li>
+                <li class="item" id = "trending">Trending</li>
+                <li class="item" id = "personal">Personal</li>
+            </ul>
+            <ul class="filters">
+                <li class="item" id = "business">Business</li>
+                <li class="item" id = "politics">Politics</li>
+                <li class="item" id = "sports">Sports</li>
+                <li class="item" id = "entertainment">Entertainment</li>
+            </ul>
+            <ul class="tools">
+                <li class="item" id = "history">History</li>
+                <li class="item" id = "bookmarks">Bookmarks</li>
+            </ul>
+            <img class="settings" src="https://openclipart.org/image/2400px/svg_to_png/275104/cog2.png"
+               >
+        </div>
+        <div id = "main_header" class="column_content">
+            <h1>Main News Feed</h1>
+        </div>
     </body>
 </html>
