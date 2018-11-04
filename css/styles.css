@@ -4,19 +4,25 @@ html, body {
     margin: 0;
 }
 
+button {
+    height: 25px;
+}
+
 .column_nav {
     float: left;
     display: flex;
     flex-flow: column;
-    justify-content: space-between;
+    justify-content: flex-start;
     width: 20%;
     height: 99%;
-    padding: 10px 10px;
+    padding-bottom: 40px;
+    padding: 15px 15px;
     background-color: lightblue;
 }
 
 .column_content {
     display: flex;
+    flex-flow: column;
     justify-content: space-evenly;
     margin-left: 20%;
     padding-left:10px;
@@ -27,5 +33,12 @@ html, body {
     display: block;
     margin-left: auto;
     margin-right: auto;
-    width: 20%;
+    width: 40%;
+}
+
+.settings_element {
+    display: flex;
+    flex-flow: row;
+    justify-content: space-around;
+    align-items: center;
 }

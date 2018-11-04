@@ -1,0 +1,66 @@
+<!doctype html>
+<html>
+    <header>
+        <meta charset='utf-8'>
+        <meta name='description' content='Personalized News Curation'>
+        <meta name='name' content="Clever News">
+        <link rel="stylesheet" type="text/css" href="css/styles.css">
+        <title>CleverNews!</title>
+    </header>
+    <body>
+        <div class="column_nav">
+            <a href = "./index.html">
+                <h3> Return Home </h3>
+            </a>
+            <ul>
+                <li> General </li>
+                <li> Topic Subs</li>
+                <li> Provider Subs</li>
+                <li> Weight Adjustment</li>
+                <li> Theme/Appearance</li>
+                <li> Censored Words</li>
+            </ul>
+        </div>
+        <div class="column_content">
+            <h1> Settings Page</h1>
+            <div id = "personal_info">
+                <h3>Personal Information</h3>
+                <div class="settings_element">
+                    <h4> Name here</h4>
+                    <button> Edit</button>
+                </div>
+                <div class="settings_element">
+                        <h4> Email here</h4>
+                        <button> Edit</button>
+                </div>
+            </div>
+            <div id = "topic_subscriptions">
+                <h4> Topic Subscriptions </h4>
+                <button> Add </button>
+                <div class="settings_element">
+                        <h4> New York Yankees </h4>
+                        <button>X</button>
+                </div>
+            </div>
+            <div id = "provider_subscriptions">
+                <h3> Provider Subscriptions</h3>
+                <button> Add </button>
+                <div class="settings_element">
+                        <h4> New York Times </h4>
+                        <button>X</button>
+                </div>
+            </div>
+            <div id = "unlearning_info">
+                <h3> Learned Interest Adjustments </h3>
+                <div class="settings_element">
+                        <h4> Elon Musk </h4>
+                        <input type="range" min="1" max="100" value="30" class="slider">
+                </div>
+                <div class="settings_element">
+                        <h4> SpaceX </h4>
+                        <input type="range" min="1" max="100" value="65" class="slider">
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

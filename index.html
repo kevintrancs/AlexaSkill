@@ -11,26 +11,33 @@
         <div class="column_nav">
             <ul class="feeds">
                 <li class="item" id ="hub"
-                onClick='document.getElementById("header_main").innerHTML = "Hello!"'>Hub</li>
-                <li class="item" id = "breaking!">Breaking!</li>
-                <li class="item" id = "trending">Trending</li>
-                <li class="item" id = "personal">Personal</li>
+                onClick="myFunction(this.id)">Hub</li>
+                <li class="item" id = "breaking!" onClick="myFunction(this.id)">Breaking!</li>
+                <li class="item" id = "trending" onClick="myFunction(this.id)">Trending</li>
+                <li class="item" id = "personal" onClick="myFunction(this.id)">Personal</li>
             </ul>
             <ul class="filters">
-                <li class="item" id = "business">Business</li>
-                <li class="item" id = "politics">Politics</li>
-                <li class="item" id = "sports">Sports</li>
-                <li class="item" id = "entertainment">Entertainment</li>
+                <li class="item" id = "business" onClick="myFunction(this.id)">Business</li>
+                <li class="item" id = "politics" onClick="myFunction(this.id)">Politics</li>
+                <li class="item" id = "sports" onClick="myFunction(this.id)">Sports</li>
+                <li class="item" id = "entertainment" onClick="myFunction(this.id)">Entertainment</li>
             </ul>
             <ul class="tools">
-                <li class="item" id = "history">History</li>
-                <li class="item" id = "bookmarks">Bookmarks</li>
+                <li class="item" id = "history" onClick="myFunction(this.id)">History</li>
+                <li class="item" id = "bookmarks" onClick="myFunction(this.id)">Bookmarks</li>
             </ul>
-            <img class="settings" src="https://openclipart.org/image/2400px/svg_to_png/275104/cog2.png"
-               >
+            <a href = "./settings.html">
+                <img class="settings" src="https://openclipart.org/image/2400px/svg_to_png/275104/cog2.png">
+            </a>
         </div>
-        <div id = "main_header" class="column_content">
-            <h1>Main News Feed</h1>
+        <div class="column_content">
+            <h1 id = "main_header" >Main News Feed</h1>
+            <img class="example" src="http://www.niemanlab.org/images/google_author.png">
         </div>
+        <script>
+            function myFunction(caller_id) {
+                document.getElementById("main_header").innerHTML = caller_id;
+            }
+            </script>
     </body>
 </html>
