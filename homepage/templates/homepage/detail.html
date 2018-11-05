@@ -1,0 +1,6 @@
+<h1>{{ article.article_text }}</h1>
+<ul>
+    {% for title in article.article_title_set.all %}
+    <li>{{ title.article_title }}</li>
+    {% endfor %}
+</ul>
