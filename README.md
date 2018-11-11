@@ -44,5 +44,13 @@ cd ./pipeline && python news.py
 localhost:8080/api?search={search_field}
 ```
 
+### Django RESTFUL
+
+Django restful API is up, can query from dynamoDB, only have category in, no error checks but it works
+
+```
+
+```
+
 Todo:
-Link babel fasted search on dynamodb
+alot lol
