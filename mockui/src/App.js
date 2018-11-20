@@ -10,11 +10,12 @@ class App extends Component {
   }
   render() {
     return (
-      <div className="App">
+      <div className="App listed">
         <Sidepanel />
         <div id="page-wrap">
-          <h1>CleverNews</h1>
+          <h1 className="fonted">CleverNews</h1>
           <h2>We make news more... clever</h2>
+          <br />
           <Feed />
         </div>
       </div>

@@ -7,7 +7,10 @@ import {
   CardTitle,
   CardBody,
   CardText,
-  CardImg
+  InputGroup,
+  InputGroupAddon,
+  Button,
+  Input
 } from "reactstrap";
 
 class Feed extends Component {
@@ -26,20 +29,30 @@ class Feed extends Component {
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Credentials": true
     };
-    fetch("http://localhost:8000/api/test/?category=US", headers)
+    fetch("http://localhost:5000/api/category?field=US", headers)
       .then(results => results.json())
       .then(results => {
-        this.setState({ items: results.Items });
+        this.setState({ items: results.found.Items });
       });
   }
 
   render() {
     return (
-      <ul>
-        {this.state.items.map(function(item, index) {
-          return <ContentItem item={item} key={index} />;
-        })}
-      </ul>
+      <div>
+        <InputGroup className="col-11 col-sm-5 center">
+          <InputGroupAddon addonType="prepend">
+            <Button>
+              <i class="fa fa-search" />
+            </Button>
+          </InputGroupAddon>
+          <Input placeholder="search" />
+        </InputGroup>
+        <ul className="listed">
+          {this.state.items.map(function(item, index) {
+            return <ContentItem item={item} key={index} />;
+          })}
+        </ul>
+      </div>
     );
   }
 }
@@ -48,8 +61,8 @@ const ContentItem = ({ item }) => (
   <Row className="ContentItem">
     <Col xs="3" />
     <Col xs="12" sm="6">
-      <Card>
-        <CardBody>
+      <Card className="carded">
+        <CardBody className="carded">
           <img
             align="left"
             alt=""
@@ -57,7 +70,9 @@ const ContentItem = ({ item }) => (
             height="100px"
             src={item.thumbnail}
           />
-          <CardTitle>{item.name}</CardTitle>
+          <a href={item.url} target="_blank">
+            <CardTitle>{item.name}</CardTitle>{" "}
+          </a>
           <CardText>{item.description}</CardText>
         </CardBody>
       </Card>

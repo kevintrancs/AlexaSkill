@@ -53,4 +53,6 @@ Django restful API is up, can query from dynamoDB, only have category in, no err
 ```
 
 Todo:
-alot lol
+Port search on category on flask
+Finish search by keywords for flask
+Start babel net search, then port terms in that search

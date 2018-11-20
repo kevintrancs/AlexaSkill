@@ -1,5 +1,4 @@
 # Just sample grabbing sysnet ids nothing too sick...
-
 import json
 import requests
 from flask import Flask, Response
@@ -9,16 +8,19 @@ from flask import request
 from flask.logging import default_handler
 from flask_cors import CORS
 import boto3
+from boto3.dynamodb.conditions import Key, Attr
 
 
 app = Flask(__name__)
 CORS(app)
+db = boto3.resource('dynamodb')
+table = db.Table('NewsHashed')
 
 with open('./constants.json') as f:
     CONSTANTS = json.load(f)
 
 
-@app.route("/endpoint/lemma", methods=['GET'])
+@app.route("/api/semantic/lemma", methods=['GET'])
 def fullLemma():
     """
     Gets the full lemmas based off that search result
@@ -40,13 +42,30 @@ def fullLemma():
     return Response(json.dumps({'fullLemma': full}), status=200, mimetype='application/json')
 
 
-@app.route("/endpoint/source", methods=['GET'])
-def sourced():
+@app.route("/api/category", methods=['GET'])
+def grab_categories():
+    """
+    Grabs the specific categories in the db
+    ----------
+    Returns
+    -------
+    Response
+        Not error checking, pls don't hack me
+    """
     json_id = request.args.get('field')
-    dynamodb = boto3.resource('dynamodb')
-    table = dynamodb.Table('news')
+    print(json_id)
+    response = table.scan(
+        FilterExpression=Attr('category').eq(json_id)
+    )
+    return Response(json.dumps({'found': response}), status=200, mimetype='application/json')
 
-    response = table.scan()
+
+@app.route("/api/custom/search", methods=['GET'])
+def grab_custom_search():
+    json_id = request.args.get('field')
+    response = table.scan(
+        FilterExpression=Attr('name').contains(json_id)
+    )
     return Response(json.dumps({'found': response}), status=200, mimetype='application/json')
 
 
@@ -71,4 +90,4 @@ def get_sys_ids(search):
 
 if __name__ == "__main__":
     # 0.0.0.0 cause public and shit
-    app.run(host='0.0.0.0')
+    app.run(host='0.0.0.0', debug=True)

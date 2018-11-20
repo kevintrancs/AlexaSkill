@@ -10,47 +10,47 @@ class Sidepanel extends Component {
           <span> Breaking</span>
         </a>
 
-        <a className="menu-item" href="/laravel">
+        <a className="menu-item" href="">
           <i class="fa fa-newspaper-o" />
           <span> Trending News</span>
         </a>
 
-        <a className="menu-item" href="/angular">
+        <a className="menu-item" href="">
           <i class="fa fa-user" aria-hidden="true" />
           <span> Personal</span>
         </a>
 
-        <a className="menu-item" href="/react">
+        <a className="menu-item" href="">
           <i class="fa fa-building" aria-hidden="true" />
           <span> Business</span>
         </a>
 
-        <a className="menu-item" href="/vue">
+        <a className="menu-item" href="">
           <i class="fa fa-snowflake-o" aria-hidden="true" />
           <span> Politics</span>
         </a>
 
-        <a className="menu-item" href="/node">
+        <a className="menu-item" href="">
           <i class="fa fa-futbol-o" aria-hidden="true" />
           <span> Sports</span>
         </a>
 
-        <a className="menu-item" href="/node">
+        <a className="menu-item" href="">
           <i class="fa fa-film" aria-hidden="true" />
           <span> Entertainment</span>
         </a>
 
-        <a className="menu-item" href="/node">
+        <a className="menu-item" href="">
           <i class="fa fa-history" aria-hidden="true" />
           <span> History</span>
         </a>
 
-        <a className="menu-item" href="/node">
+        <a className="menu-item" href="">
           <i class="fa fa-bookmark" aria-hidden="true" />
           <span> Bookmarks</span>
         </a>
 
-        <a className="menu-item" href="/node">
+        <a className="menu-item" href="">
           <i class="fa fa-cog" aria-hidden="true" />
           <span> Settings</span>
         </a>
