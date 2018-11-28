@@ -20,26 +20,70 @@ h2 {
 
   padding: 10px;
 }
+
+
+
+.ContentItem {
+    padding-bottom: 6px;
+}
+
+#header {
+    background-color: rgb(106, 200, 240);
+    position: fixed;
+    height: 145px;
+    width: 100%;
+    z-index: 10;
+}
+
+.card-buttons {
+    height: 100%;
+}
+
+.left{
+    float: left;
+    margin: 10px;
+}
+
+.right {
+    margin: 10px;
+    float: right;
+}
+
+.feed{
+    padding-top: 160px;
+}
+
 .listed {
-  background-color: #374785;
   color: aliceblue;
+  width: 100%;
 }
+
 .carded {
-  background-color: #a8d0e6;
+  background-color: rgba(255, 0, 0, 0.5);
+  font-size: 16px;
+  font-weight: 100px;
+  text-align: left;
 }
+
+.outlink {
+    font-size: 18px;
+}
+
 .fonted {
   text-align: center;
   font-size: 3em;
   margin-bottom: 10px;
   text-transform: uppercase;
   font-weight: bold;
-  text-shadow: 0 1px 2px rgba(black, 0.15);
+  text-shadow: 0 1px 2px rgba(black, 0.25);
+  padding-top: 16px;
 }
 
 #page-wrap {
   text-align: center;
   overflow: auto;
 }
+
 
 /* Position and sizing of burger button */
 .bm-burger-button {
@@ -80,7 +124,7 @@ h2 {
 
 /* Wrapper for item list */
 .bm-item-list {
-  color: #b8b7ad;
+  color: #F7D08A;
   padding: 0.8em;
 }
 
@@ -94,6 +138,10 @@ h2 {
   font-weight: 300;
   line-height: 1.7em;
   color: #999;
+}
+
+.cat {
+    color: midnightblue;
 }
 
 /* Styling of overlay */

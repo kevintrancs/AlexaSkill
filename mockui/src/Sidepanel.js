@@ -2,6 +2,12 @@ import React, { Component } from "react";
 import { bubble as Menu } from "react-burger-menu";
 
 class Sidepanel extends Component {
+
+    constructor(props){
+        super(props);
+        this.state = {category: "None"};
+    }
+
   render() {
     return (
       <Menu stack>
@@ -20,22 +26,22 @@ class Sidepanel extends Component {
           <span> Personal</span>
         </a>
 
-        <a className="menu-item" href="">
+        <a className="menu-item cat" href="">
           <i class="fa fa-building" aria-hidden="true" />
           <span> Business</span>
         </a>
 
-        <a className="menu-item" href="">
+        <a className="menu-item cat" href="">
           <i class="fa fa-snowflake-o" aria-hidden="true" />
           <span> Politics</span>
         </a>
 
-        <a className="menu-item" href="">
+        <a className="menu-item cat" href="">
           <i class="fa fa-futbol-o" aria-hidden="true" />
           <span> Sports</span>
         </a>
 
-        <a className="menu-item" href="">
+        <a className="menu-item cat" href="">
           <i class="fa fa-film" aria-hidden="true" />
           <span> Entertainment</span>
         </a>
