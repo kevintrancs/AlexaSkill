@@ -20,7 +20,6 @@ import ListItemText from "@material-ui/core/ListItemText";
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 import CardMedia from "@material-ui/core/CardMedia";
-import Grid from "@material-ui/core/Grid";
 
 import {
   Report,
@@ -160,7 +159,8 @@ const styles = theme => ({
     flex: "1 0 auto"
   },
   cover: {
-    width: 250,
+    width: "30%",
+    maxwidth: "30%",
     padding: "4px"
   },
   controls: {
@@ -168,6 +168,13 @@ const styles = theme => ({
     alignItems: "center",
     paddingLeft: theme.spacing.unit,
     paddingBottom: theme.spacing.unit
+  },
+  logo: {
+    maxwidth: "10%",
+    maxheight: "10%",
+    width: "30%",
+    height: "10%",
+    marginRight: +drawerWidth / 5
   }
 });
 class Feed extends Component {
@@ -177,7 +184,7 @@ class Feed extends Component {
   };
 
   componentDidMount() {
-    this.getItems("US");
+    this.initial_feed();
   }
 
   getSearch(event) {
@@ -198,6 +205,21 @@ class Feed extends Component {
           });
       }
     }
+  }
+
+  initial_feed() {
+    var headers = {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Credentials": true
+    };
+
+    fetch("http://localhost:5000/api/search?field=trendingtopics", headers)
+      .then(results => results.json())
+      .then(results => {
+        console.log(results);
+        this.setState({ items: results.found });
+        console.log(this.state.items);
+      });
   }
 
   parseHtmlEntities(str) {
@@ -293,7 +315,7 @@ class Feed extends Component {
           }}
         >
           <div className={classes.drawerHeader}>
-            <h3>Cool Logo Here</h3>
+            <img className={classes.logo} src="/clever.png" />
             <IconButton onClick={this.handleDrawerClose}>
               <ChevronLeftIcon />
             </IconButton>
@@ -346,7 +368,7 @@ class Feed extends Component {
                   <Card className={classes.card}>
                     <div className={classes.details}>
                       <CardContent className={classes.content}>
-                        <Typography component="h5" variant="h5">
+                        <Typography component="h5" variant="h6">
                           <a href={item.url} target="_blank">
                             {x}
                           </a>
@@ -366,7 +388,9 @@ class Feed extends Component {
                     </div>
                     <CardMedia
                       className={classes.cover}
-                      image={item.thumbnail}
+                      image={
+                        item.thumbnail !== " " ? item.thumbnail : "/clever.png"
+                      }
                       title="Live from space album cover"
                     />
                   </Card>
