@@ -17,6 +17,11 @@ import SearchIcon from "@material-ui/icons/Search";
 import InputBase from "@material-ui/core/InputBase";
 import ListItem from "@material-ui/core/ListItem";
 import ListItemText from "@material-ui/core/ListItemText";
+import Card from "@material-ui/core/Card";
+import CardContent from "@material-ui/core/CardContent";
+import CardMedia from "@material-ui/core/CardMedia";
+import Grid from "@material-ui/core/Grid";
+
 import {
   Report,
   TrendingUp,
@@ -74,10 +79,8 @@ const styles = theme => ({
   content: {
     flexGrow: 1,
     padding: theme.spacing.unit * 3,
-    transition: theme.transitions.create("margin", {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.leavingScreen
-    }),
+    height: "100vh",
+    overflow: "auto",
     marginLeft: -drawerWidth
   },
   contentShift: {
@@ -125,6 +128,46 @@ const styles = theme => ({
     [theme.breakpoints.up("md")]: {
       width: 200
     }
+  },
+  layout: {
+    width: 1500,
+    marginLeft: theme.spacing.unit * 3,
+    marginRight: theme.spacing.unit * 3,
+    [theme.breakpoints.up(1100 + theme.spacing.unit * 3 * 2)]: {
+      width: 1100,
+      marginLeft: "auto",
+      marginRight: "auto"
+    }
+  },
+  list: {
+    minWidth: 1500,
+    marginLeft: "auto"
+  },
+  appBarSpacer: theme.mixins.toolbar,
+  card: {
+    display: "flex",
+    width: "90%",
+    borderRadius: "2px",
+    overflow: "hidden"
+  },
+  details: {
+    display: "flex",
+    flexDirection: "column",
+    borderRadius: "2px",
+    overflow: "hidden"
+  },
+  content: {
+    flex: "1 0 auto"
+  },
+  cover: {
+    width: 250,
+    padding: "4px"
+  },
+  controls: {
+    display: "flex",
+    alignItems: "center",
+    paddingLeft: theme.spacing.unit,
+    paddingBottom: theme.spacing.unit
   }
 });
 class Feed extends Component {
@@ -155,6 +198,13 @@ class Feed extends Component {
           });
       }
     }
+  }
+
+  parseHtmlEntities(str) {
+    return str.replace(/&#([0-9]{1,3});/gi, function(match, numStr) {
+      var num = parseInt(numStr, 10); // read num as normal number
+      return String.fromCharCode(num);
+    });
   }
 
   getItems(category) {
@@ -216,7 +266,7 @@ class Feed extends Component {
               <MenuIcon />
             </IconButton>
             <Typography variant="h6" color="inherit" noWrap>
-              Clever News
+              CleverNews
             </Typography>
             <div className={classes.search}>
               <div className={classes.searchIcon}>
@@ -243,6 +293,7 @@ class Feed extends Component {
           }}
         >
           <div className={classes.drawerHeader}>
+            <h3>Cool Logo Here</h3>
             <IconButton onClick={this.handleDrawerClose}>
               <ChevronLeftIcon />
             </IconButton>
@@ -276,16 +327,44 @@ class Feed extends Component {
           className={classNames(classes.content, {
             [classes.contentShift]: open
           })}
-        />
-        <List>
-          {this.state.items.map(function(item, index) {
-            return (
-              <ListItem key={item.name}>
-                <ListItemText primary={item.name} />
-              </ListItem>
-            );
-          })}
-        </List>
+        >
+          <div className={classes.appBarSpacer} />
+          <List className={classNames(classes.layout)}>
+            {this.state.items.map(function(item, index) {
+              return (
+                <ListItem key={item.name}>
+                  <Card className={classes.card}>
+                    <div className={classes.details}>
+                      <CardContent className={classes.content}>
+                        <Typography component="h5" variant="h5">
+                          <a href={item.url} target="_blank">
+                            {item.name}
+                          </a>
+                        </Typography>
+                        <Typography variant="subtitle1" color="textSecondary">
+                          {item.description}}
+                        </Typography>
+                      </CardContent>
+                      <div className={classes.controls}>
+                        <Typography variant="subtitle1" color="textSecondary">
+                          Topic:
+                        </Typography>
+                        <Typography variant="subtitle1" color="textSecondary">
+                          {item.category}
+                        </Typography>
+                      </div>
+                    </div>
+                    <CardMedia
+                      className={classes.cover}
+                      image={item.thumbnail}
+                      title="Live from space album cover"
+                    />
+                  </Card>
+                </ListItem>
+              );
+            })}
+          </List>
+        </main>
       </div>
     );
   }

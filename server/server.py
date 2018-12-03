@@ -32,16 +32,15 @@ def fetch_category():
 
     if cat_name in ["Breaking", "History", "Settings", "Trending"]:
         cat_name = "Other"
-
     if cat_name:
         response = table.scan(FilterExpression=Attr('category').eq(cat_name))
     else:
-        return Response(json.dumps({'Error': "Bad parameter"}), status=404, mimetype='application/json')
+        return Response(json.dumps({'found': []}), status=404, mimetype='application/json')
     
     if response['Count'] > 0:
         return Response(json.dumps({'found': response['Items']}), status=200, mimetype='application/json')
     else:
-        return Response(json.dumps({'Error': "NULL"}), status=404, mimetype='application/json')
+        return Response(json.dumps({'found': []}), status=404, mimetype='application/json')
 
 
 @app.route("/api/search", methods=['GET'])
@@ -52,16 +51,21 @@ def fetch_custom():
     search_query = request.args.get('field')
     if search_query:
         response = table.scan(FilterExpression=Attr(
-            'name').contains(search_query))
+            'query_use').contains(search_query))
     else:
-        return Response(json.dumps({'Error': "Bad parameter"}), status=404, mimetype='application/json')
+        return Response(json.dumps({'found': []}), status=404, mimetype='application/json')
 
     if response['Count'] > 0:
         return Response(json.dumps({'found': response['Items']}), status=200, mimetype='application/json')
     else:
-        # Todo: Isolate pull to return data instead
-        pull(search_query)
-        return Response(json.dumps({'Error': "NULL"}), status=404, mimetype='application/json')
+        response = table.scan(FilterExpression=Attr(
+            'name').contains(search_query))
+        if response['Count'] > 0:
+            return Response(json.dumps({'found': response['Items']}), status=200, mimetype='application/json')
+        else:
+            pull(search_query)
+            response = table.scan(FilterExpression=Attr('query_use').eq(search_query))
+            return Response(json.dumps({'found': response['Items']}), status=200, mimetype='application/json')
 
 
 if __name__ == "__main__":
