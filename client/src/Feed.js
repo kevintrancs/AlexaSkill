@@ -201,7 +201,7 @@ class Feed extends Component {
   }
 
   parseHtmlEntities(str) {
-    return str.replace(/&#([0-9]{1,3});/gi, function(match, numStr) {
+    return str.name.replace(/&#([0-9]{1,3});/gi, function(match, numStr) {
       var num = parseInt(numStr, 10); // read num as normal number
       return String.fromCharCode(num);
     });
@@ -331,6 +331,16 @@ class Feed extends Component {
           <div className={classes.appBarSpacer} />
           <List className={classNames(classes.layout)}>
             {this.state.items.map(function(item, index) {
+              // Dumb way to do it, but ay works will fix sometime eventually
+              var x = item.name;
+              var y = item.description;
+              var i = document.createElement("div");
+              var j = document.createElement("div");
+              i.innerHTML = item.name;
+              j.innerHTML = item.description;
+              x = i.childNodes[0].nodeValue;
+              y = j.childNodes[0].nodeValue;
+
               return (
                 <ListItem key={item.name}>
                   <Card className={classes.card}>
@@ -338,11 +348,11 @@ class Feed extends Component {
                       <CardContent className={classes.content}>
                         <Typography component="h5" variant="h5">
                           <a href={item.url} target="_blank">
-                            {item.name}
+                            {x}
                           </a>
                         </Typography>
                         <Typography variant="subtitle1" color="textSecondary">
-                          {item.description}}
+                          {y}
                         </Typography>
                       </CardContent>
                       <div className={classes.controls}>
