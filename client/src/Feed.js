@@ -175,6 +175,9 @@ const styles = theme => ({
     width: "30%",
     height: "10%",
     marginRight: +drawerWidth / 5
+  },
+  addition_details: {
+    paddingLeft: theme.spacing.unit
   }
 });
 class Feed extends Component {
@@ -378,11 +381,20 @@ class Feed extends Component {
                         </Typography>
                       </CardContent>
                       <div className={classes.controls}>
-                        <Typography variant="subtitle1" color="textSecondary">
-                          Topic:
-                        </Typography>
-                        <Typography variant="subtitle1" color="textSecondary">
+                        <Typography
+                          className={classes.addition_details}
+                          variant="subtitle1"
+                          color="primary"
+                        >
                           {item.category}
+                        </Typography>
+
+                        <Typography
+                          className={classes.addition_details}
+                          variant="subtitle1"
+                          color="secondary"
+                        >
+                          {item.provider}
                         </Typography>
                       </div>
                     </div>
@@ -391,7 +403,7 @@ class Feed extends Component {
                       image={
                         item.thumbnail !== " " ? item.thumbnail : "/clever.png"
                       }
-                      title="Live from space album cover"
+                      title="Image"
                     />
                   </Card>
                 </ListItem>

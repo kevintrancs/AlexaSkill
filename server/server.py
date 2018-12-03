@@ -42,6 +42,23 @@ def fetch_category():
     else:
         return Response(json.dumps({'found': []}), status=404, mimetype='application/json')
 
+@app.route("/api/inital", methods=['GET'])
+def fetch_initial():
+    # GET: Returns JSON of categories
+    # Returns Array of all the ones found.
+    cat_name = request.args.get('field')
+    cat_name2 = request.args.get('field2')
+    cat_name3 = request.args.get('field3')
+
+    if cat_name:
+        response = table.scan(FilterExpression=Attr('category').eq(cat_name) & Attr('category').eq(cat_name2) & Attr('category').eq(cat_name3))
+    else:
+        return Response(json.dumps({'found': []}), status=404, mimetype='application/json')
+    
+    if response['Count'] > 0:
+        return Response(json.dumps({'found': response['Items']}), status=200, mimetype='application/json')
+    else:
+        return Response(json.dumps({'found': []}), status=404, mimetype='application/json')
 
 @app.route("/api/search", methods=['GET'])
 def fetch_custom():
