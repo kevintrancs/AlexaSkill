@@ -1,3 +1,4 @@
 # News Hub
 
-Currently working on tutorials and stuff.
+Fast push, a lot of shits broken
+Will push it polished in soontime before demo
