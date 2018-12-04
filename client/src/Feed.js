@@ -20,6 +20,7 @@ import ListItemText from "@material-ui/core/ListItemText";
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 import CardMedia from "@material-ui/core/CardMedia";
+import CircularProgress from "@material-ui/core/CircularProgress";
 
 import {
   Report,
@@ -183,7 +184,8 @@ const styles = theme => ({
 class Feed extends Component {
   state = {
     open: true,
-    items: []
+    items: [],
+    loading: false
   };
 
   componentDidMount() {
@@ -192,6 +194,7 @@ class Feed extends Component {
 
   getSearch(event) {
     if (event.key === "Enter") {
+      this.setState({ loading: true });
       var value = event.target.value;
       if (value !== "") {
         var headers = {
@@ -205,6 +208,7 @@ class Feed extends Component {
             console.log(results);
             this.setState({ items: results.found });
             console.log(this.state.items);
+            this.setState({ loading: false });
           });
       }
     }
@@ -305,6 +309,17 @@ class Feed extends Component {
                   input: classes.inputInput
                 }}
               />
+            </div>
+            <div>
+              {" "}
+              {this.state.loading ? (
+                <CircularProgress
+                  className={classes.progress}
+                  color="secondary"
+                />
+              ) : (
+                " "
+              )}
             </div>
           </Toolbar>
         </AppBar>

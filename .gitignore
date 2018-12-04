@@ -1,6 +1,7 @@
 #misc
 .DS_Store
 constants.json
+.vscode
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
