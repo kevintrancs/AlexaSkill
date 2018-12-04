@@ -215,6 +215,8 @@ class Feed extends Component {
   }
 
   initial_feed() {
+    this.setState({ loading: true });
+
     var headers = {
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Credentials": true
@@ -223,20 +225,16 @@ class Feed extends Component {
     fetch("http://localhost:5000/api/search?field=trendingtopics", headers)
       .then(results => results.json())
       .then(results => {
+        this.setState({ loading: false });
         console.log(results);
         this.setState({ items: results.found });
         console.log(this.state.items);
       });
   }
 
-  parseHtmlEntities(str) {
-    return str.name.replace(/&#([0-9]{1,3});/gi, function(match, numStr) {
-      var num = parseInt(numStr, 10); // read num as normal number
-      return String.fromCharCode(num);
-    });
-  }
-
   getItems(category) {
+    this.setState({ loading: true });
+
     var headers = {
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Credentials": true
@@ -245,13 +243,18 @@ class Feed extends Component {
       .then(results => results.json())
       .then(results => {
         console.log(results);
+        this.setState({ loading: false });
         this.setState({ items: results.found });
         console.log(this.state.items);
       });
   }
 
   handleCategoryChange(category) {
-    this.getItems(category);
+    if (category == "Trending" || category == "Breaking") {
+      this.initial_feed();
+    } else {
+      this.getItems(category);
+    }
   }
 
   handleDrawerOpen = () => {
