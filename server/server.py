@@ -36,13 +36,13 @@ def fetch_category():
     if cat_name:
         response = table.scan(FilterExpression=Attr('category').eq(cat_name))
     else:
-        return Response(json.dumps({'found': []}), status=404, mimetype='application/json')
+        return Response(json.dumps({'found': []}), status=204, mimetype='application/json')
 
     if response['Count'] > 0:
         clean(response['Items'])
         return Response(json.dumps({'found': response['Items']}), status=200, mimetype='application/json')
     else:
-        return Response(json.dumps({'found': []}), status=404, mimetype='application/json')
+        return Response(json.dumps({'found': []}), status=204, mimetype='application/json')
 
 
 @app.route("/api/inital", methods=['GET'])
@@ -57,12 +57,12 @@ def fetch_initial():
         response = table.scan(FilterExpression=Attr('category').eq(cat_name) & Attr(
             'category').eq(cat_name2) & Attr('category').eq(cat_name3))
     else:
-        return Response(json.dumps({'found': []}), status=404, mimetype='application/json')
+        return Response(json.dumps({'found': []}), status=204, mimetype='application/json')
 
     if response['Count'] > 0:
         return Response(json.dumps({'found': response['Items']}), status=200, mimetype='application/json')
     else:
-        return Response(json.dumps({'found': []}), status=404, mimetype='application/json')
+        return Response(json.dumps({'found': []}), status=204, mimetype='application/json')
 
 
 @app.route("/api/search", methods=['GET'])
@@ -75,7 +75,7 @@ def fetch_custom():
         response = table.scan(FilterExpression=Attr(
             'query_use').contains(search_query))
     else:
-        return Response(json.dumps({'found': []}), status=404, mimetype='application/json')
+        return Response(json.dumps({'found': []}), status=204, mimetype='application/json')
 
     if response['Count'] > 0:
         clean(response['Items'])

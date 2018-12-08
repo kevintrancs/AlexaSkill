@@ -1,3 +1,5 @@
+// Todo: Clean up
+
 import React, { Component } from "react";
 import PropTypes from "prop-types";
 import classNames from "classnames";
@@ -191,7 +193,10 @@ class Feed extends Component {
   componentDidMount() {
     this.initial_feed();
   }
-
+  /**
+   *  Searches for keyword fields after Enter was pressed
+   *  Event triggered
+   */
   getSearch(event) {
     if (event.key === "Enter") {
       this.setState({ loading: true });
@@ -214,6 +219,10 @@ class Feed extends Component {
     }
   }
 
+  /**
+   *  Init the initial feed
+   *
+   */
   initial_feed() {
     this.setState({ loading: true });
 
@@ -231,7 +240,10 @@ class Feed extends Component {
         console.log(this.state.items);
       });
   }
-
+  /**
+   *  Searches for categories fields
+   *  Event triggered onClick
+   */
   getItems(category) {
     this.setState({ loading: true });
 
@@ -249,8 +261,12 @@ class Feed extends Component {
       });
   }
 
+  /**
+   *  Conditional for Trending vs getting a category
+   *  Event triggered onClick
+   */
   handleCategoryChange(category) {
-    if (category == "Trending" || category == "Breaking") {
+    if (category === "Trending" || category === "Breaking") {
       this.initial_feed();
     } else {
       this.getItems(category);
