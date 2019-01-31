@@ -2,7 +2,7 @@
 .DS_Store
 constants.json
 .vscode
-
+../client/src/Test.js
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

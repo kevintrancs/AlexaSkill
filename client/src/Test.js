@@ -190,7 +190,8 @@ const styles = theme => ({
     paddingLeft: theme.spacing.unit
   }
 });
-class Feed extends Component {
+
+class Test extends Component {
   constructor(props) {
     super(props);
   }
@@ -225,6 +226,7 @@ class Feed extends Component {
     console.log("close triggered");
   };
   render() {
+    console.log(this.props.loading);
     const { classes, theme } = this.props;
     const { open } = this.props;
     const icons = [
@@ -242,159 +244,111 @@ class Feed extends Component {
     return (
       <div className={classes.root}>
         <CssBaseline />
-        <AppBar
-          position="absolute"
-          className={classNames(classes.appBar, {
-            [classes.appBarShift]: open
-          })}
-        >
-          <Toolbar disableGutters={!open}>
-            <IconButton
-              color="inherit"
-              aria-label="Open drawer"
-              onClick={this.handleDrawerOpen}
-              className={classNames(classes.menuButton, open && classes.hide)}
-            >
-              <MenuIcon />
-            </IconButton>
-            <Typography variant="h6" color="inherit" noWrap>
-              CleverNews
-            </Typography>
-            <div className={classes.search}>
-              <div className={classes.searchIcon}>
-                <SearchIcon />
-              </div>
-              <InputBase
-                placeholder="Search…"
-                onKeyPress={this.getSearch.bind(this)}
-                classes={{
-                  root: classes.inputRoot,
-                  input: classes.inputInput
-                }}
-              />
-            </div>
-            <div>
-              {" "}
-              {this.props.loading ? (
-                <CircularProgress
-                  className={classes.progress}
-                  color="secondary"
-                />
-              ) : (
-                " "
-              )}
-            </div>
-          </Toolbar>
-        </AppBar>
-        <Drawer
-          className={classes.drawer}
-          variant="persistent"
-          anchor="left"
-          open={open}
-          classes={{
-            paper: classes.drawerPaper
-          }}
-        >
-          <div className={classes.drawerHeader}>
-            <img className={classes.logo} src="/clever.png" />
-            <IconButton onClick={this.handleDrawerClose}>
-              <ChevronLeftIcon />
-            </IconButton>
-          </div>
-          <Divider />
-          <List>
-            {[
-              "Breaking",
-              "Trending",
-              "Business",
-              "Politics",
-              "Sports",
-              "Entertainment",
-              "Health",
-              "History",
-              "Bookmarks",
-              "Settings"
-            ].map((text, index) => (
-              <ListItem
-                button
-                key={text}
-                onClick={this.handleCategoryChange.bind(this, text)}
-              >
-                <ListItemIcon>{icons[index]}</ListItemIcon>
-                <ListItemText primary={text} />
-              </ListItem>
-            ))}
-          </List>
-        </Drawer>
-        <main
-          className={classNames(classes.content, {
-            [classes.contentShift]: open
-          })}
-        >
-          <div className={classes.appBarSpacer} />
-          <List className={classNames(classes.layout)}>
-            {this.props.items.map(function(item, index) {
-              // Dumb way to do it, but ay works will fix sometime eventually
-              var x = item.name;
-              var y = item.description;
-              var i = document.createElement("div");
-              var j = document.createElement("div");
-              i.innerHTML = item.name;
-              j.innerHTML = item.description;
-              x = i.childNodes[0].nodeValue;
-              y = j.childNodes[0].nodeValue;
-
-              return (
-                <ListItem key={item.name}>
-                  <Card className={classes.card}>
-                    <div className={classes.details}>
-                      <CardContent className={classes.content}>
-                        <Typography component="h5" variant="h6">
-                          <a href={item.url} target="_blank">
-                            {x}
-                          </a>
-                        </Typography>
-                        <Typography variant="subtitle1" color="textSecondary">
-                          {y}
-                        </Typography>
-                      </CardContent>
-                      <div className={classes.controls}>
-                        <Typography
-                          className={classes.addition_details}
-                          variant="subtitle1"
-                          color="primary"
-                        >
-                          {item.category}
-                        </Typography>
-
-                        <Typography
-                          className={classes.addition_details}
-                          variant="subtitle1"
-                          color="secondary"
-                        >
-                          {item.provider}
-                        </Typography>
-                      </div>
-                    </div>
-                    <CardMedia
-                      className={classes.cover}
-                      image={
-                        item.thumbnail !== " " ? item.thumbnail : "/clever.png"
-                      }
-                      title="Image"
-                    />
-                  </Card>
-                </ListItem>
-              );
+        <div>
+          <AppBar
+            position="absolute"
+            className={classNames(classes.appBar, {
+              [classes.appBarShift]: open
             })}
-          </List>
-        </main>
+          >
+            <Toolbar disableGutters={!open}>
+              <IconButton
+                color="inherit"
+                aria-label="Open drawer"
+                onClick={this.handleDrawerOpen}
+                className={classNames(classes.menuButton, open && classes.hide)}
+              >
+                <MenuIcon />
+              </IconButton>
+              <Typography variant="h6" color="inherit" noWrap>
+                CleverNews
+              </Typography>
+              <div className={classes.search}>
+                <div className={classes.searchIcon}>
+                  <SearchIcon />
+                </div>
+                <InputBase
+                  placeholder="Search…"
+                  onKeyPress={this.getSearch.bind(this)}
+                  classes={{
+                    root: classes.inputRoot,
+                    input: classes.inputInput
+                  }}
+                />
+              </div>
+              <div>
+                {" "}
+                {this.props.loading ? (
+                  <CircularProgress
+                    className={classes.progress}
+                    color="secondary"
+                  />
+                ) : (
+                  " "
+                )}
+              </div>
+            </Toolbar>
+          </AppBar>
+          <Drawer
+            className={classes.drawer}
+            variant="persistent"
+            anchor="left"
+            open={open}
+            classes={{
+              paper: classes.drawerPaper
+            }}
+          >
+            <div className={classes.drawerHeader}>
+              <img className={classes.logo} src="/clever.png" />
+              <IconButton onClick={this.handleDrawerClose}>
+                <ChevronLeftIcon />
+              </IconButton>
+            </div>
+            <Divider />
+            <List>
+              {[
+                "Breaking",
+                "Trending",
+                "Business",
+                "Politics",
+                "Sports",
+                "Entertainment",
+                "Health",
+                "History",
+                "Bookmarks",
+                "Settings"
+              ].map((text, index) => (
+                <ListItem
+                  button
+                  key={text}
+                  onClick={this.handleCategoryChange.bind(this, text)}
+                >
+                  <ListItemIcon>{icons[index]}</ListItemIcon>
+                  <ListItemText primary={text} />
+                </ListItem>
+              ))}
+            </List>
+          </Drawer>
+          {
+            <ul>
+              {this.props.items.map(d => (
+                <li key={d.name}>{d.name}</li>
+              ))}
+            </ul>
+          }
+        </div>
       </div>
     );
   }
 }
-Feed.propTypes = {
-  classes: PropTypes.object.isRequired
+Test.propTypes = {
+  classes: PropTypes.object.isRequired,
+  fetchInitFeed: PropTypes.func.isRequired,
+  fetchSerachFeed: PropTypes.func.isRequired,
+  fetchTopicFeed: PropTypes.func.isRequired,
+  loading: PropTypes.object.isRequired,
+  open: PropTypes.object.isRequired,
+  items: PropTypes.object.isRequired
 };
 
 const mapStateToProps = state => ({
@@ -415,5 +369,5 @@ export default compose(
     mapStateToProps,
     mapDispatchToProps
   ),
-  withStyles(styles, { name: "Feed" })
-)(Feed);
+  withStyles(styles, { name: "Test" })
+)(Test);
