@@ -4,10 +4,12 @@ import {
   RECEIVE_SEARCH_FEED,
   RECEIVE_TOPIC_FEED,
   OPEN_SIDE,
-  CLOSE_SIDE
+  CLOSE_SIDE,
+  OPEN_NEST,
+  CLOSE_NEST
 } from "../actions/actions";
 
-const reducer = (state = { open: true, loading: false, items: [] }, action) => {
+const reducer = (state = { open: true, open_list: false, loading: false, items: [] }, action) => {
   switch (action.type) {
     case REQUEST_FEED:
       return { ...state, loading: true };
@@ -21,6 +23,10 @@ const reducer = (state = { open: true, loading: false, items: [] }, action) => {
       return { ...state, open: true };
     case CLOSE_SIDE:
       return { ...state, open: false };
+    case OPEN_NEST:
+      return { ...state, open_list: true };
+    case CLOSE_NEST:
+      return { ...state, open_list: false}
     default:
       return state;
   }

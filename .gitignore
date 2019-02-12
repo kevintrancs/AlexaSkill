@@ -7,6 +7,10 @@ constants.json
 __pycache__/
 *.py[cod]
 *$py.class
+.idea/
+AppEdits.js
+OrgApp.js
+article_data/
 
 # C extensions
 *.so

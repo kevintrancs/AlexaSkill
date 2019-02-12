@@ -4,6 +4,8 @@ export const RECEIVE_SEARCH_FEED = "RECEIVE_SEARCH_FEED";
 export const RECEIVE_TOPIC_FEED = "RECEIVE_TOPIC_FEED";
 export const CLOSE_SIDE = "CLOSE_SIDE";
 export const OPEN_SIDE = "OPEN_SIDE";
+export const OPEN_NEST = "OPEN_NEST";
+export const CLOSE_NEST = "CLOSE_NEST";
 
 const headers = {
   "Access-Control-Allow-Origin": "*",
@@ -31,6 +33,12 @@ export const receiveTopicFeed = json => ({
   type: RECEIVE_TOPIC_FEED,
   json: json
 });
+export const openNest = () => ({
+  type: OPEN_NEST
+});
+export const closeNest = () => ({
+  type: CLOSE_NEST
+});
 
 export function closeDrawer() {
   return function(dispatch) {
@@ -40,6 +48,18 @@ export function closeDrawer() {
 export function openDrawer() {
   return function(dispatch) {
     dispatch(openSide());
+  };
+}
+
+export function openList() {
+  return function(dispatch) {
+    dispatch(openNest());
+  };
+}
+
+export function closeList() {
+  return function(dispatch){
+    dispatch(closeNest());
   };
 }
 

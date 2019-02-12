@@ -22,6 +22,12 @@ import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 import CardMedia from "@material-ui/core/CardMedia";
 import CircularProgress from "@material-ui/core/CircularProgress";
+import ListItemIcon from '@material-ui/core/ListItemIcon';
+import Collapse from '@material-ui/core/Collapse';
+import ExpandLess from '@material-ui/icons/ExpandLess';
+import ExpandMore from '@material-ui/icons/ExpandMore';
+import StarBorder from '@material-ui/icons/StarBorder';
+
 import {
   Report,
   TrendingUp,
@@ -32,9 +38,9 @@ import {
   History,
   Bookmark,
   Settings,
-  LocalHospital
+  LocalHospital,
+  FilterDrama
 } from "@material-ui/icons";
-import ListItemIcon from "@material-ui/core/ListItemIcon";
 import React, { Component } from "react";
 import { connect } from "react-redux";
 import {
@@ -42,7 +48,9 @@ import {
   fetchSerachFeed,
   fetchTopicFeed,
   closeDrawer,
-  openDrawer
+  openDrawer,
+  openList,
+  closeList
 } from "./actions/actions";
 const drawerWidth = 240;
 
@@ -188,6 +196,9 @@ const styles = theme => ({
   },
   addition_details: {
     paddingLeft: theme.spacing.unit
+  },
+  nested: {
+    paddingLeft: theme.spacing.unit * 4
   }
 });
 class Feed extends Component {
@@ -224,9 +235,21 @@ class Feed extends Component {
     this.props.c();
     console.log("close triggered");
   };
+
+  handleListOpen = () => {
+    if (this.props.open_list == true) {
+      this.props.cl();
+      console.log("list close triggered")
+    }
+    else{
+      this.props.ol();
+      console.log("list open triggered")
+    }
+  };
+
   render() {
     const { classes, theme } = this.props;
-    const { open } = this.props;
+    const { open, open_list } = this.props;
     const icons = [
       <Report />,
       <TrendingUp />,
@@ -324,6 +347,38 @@ class Feed extends Component {
                 <ListItemText primary={text} />
               </ListItem>
             ))}
+            <ListItem
+                button
+                key= {"My News"}
+                onClick={this.handleListOpen}>
+                <ListItemIcon>
+                    <FilterDrama />
+                </ListItemIcon>
+                <ListItemText primary="My News" />
+                { open_list ? <ExpandLess /> : <ExpandMore />}
+            </ListItem>
+            <Collapse in={ open_list } timeout="auto" unmountOnExit>
+                <List component="div" disablePadding>
+                    <ListItem button className={classes.nested}>
+                        <ListItemIcon>
+                            <StarBorder />
+                        </ListItemIcon>
+                        <ListItemText inset primary="ML 1" />
+                    </ListItem>
+                    <ListItem button className={classes.nested}>
+                        <ListItemIcon>
+                            <StarBorder />
+                        </ListItemIcon>
+                        <ListItemText inset primary="ML 2" />
+                    </ListItem>
+                    <ListItem button className={classes.nested}>
+                        <ListItemIcon>
+                            <StarBorder />
+                        </ListItemIcon>
+                        <ListItemText inset primary="ML 3" />
+                    </ListItem>
+                </List>
+            </Collapse>
           </List>
         </Drawer>
         <main
@@ -400,14 +455,17 @@ Feed.propTypes = {
 const mapStateToProps = state => ({
   loading: state.loading,
   open: state.open,
-  items: state.items
+  items: state.items,
+  open_list: state.open_list
 });
 const mapDispatchToProps = {
   getInit: fetchInitFeed,
   getSearch: fetchSerachFeed,
   getTopic: fetchTopicFeed,
   c: closeDrawer,
-  o: openDrawer
+  o: openDrawer,
+  cl: closeList,
+  ol: openList
 };
 
 export default compose(
