@@ -1,9 +1,17 @@
+import { Auth } from 'aws-amplify';
+
 export const REQUEST_FEED = "REQUEST_FEED";
 export const RECEIVE_INIT_FEED = "RECEIVE_INIT_FEED";
 export const RECEIVE_SEARCH_FEED = "RECEIVE_SEARCH_FEED";
 export const RECEIVE_TOPIC_FEED = "RECEIVE_TOPIC_FEED";
 export const CLOSE_SIDE = "CLOSE_SIDE";
 export const OPEN_SIDE = "OPEN_SIDE";
+export const UPDATE_EMAIL = "UPDATE_EMAIL";
+export const UPDATE_PASSWORD = "UPDATE_PASSWORD";
+export const REQUEST_LOG_IN = "REQUEST_LOG_IN";
+export const RECEIVE_LOG_IN = "RECEIVE_LOG_IN";
+export const REQUEST_LOG_OUT = "REQUEST_LOG_OUT";
+export const RECEIVE_LOG_OUT = "RECEIVE_LOG_OUT";
 
 const headers = {
   "Access-Control-Allow-Origin": "*",
@@ -31,6 +39,39 @@ export const receiveTopicFeed = json => ({
   type: RECEIVE_TOPIC_FEED,
   json: json
 });
+export const updateEmail = str => ({
+  type: UPDATE_EMAIL,
+  str: str
+});
+export const updatePassword = str => ({
+  type: UPDATE_PASSWORD,
+  str: str
+});
+export const requestLogin = () => ({
+  type: REQUEST_LOG_IN
+});
+export const receiveLogin = () => ({
+  type: RECEIVE_LOG_IN
+});
+export const requestLogout = () => ({
+  type: REQUEST_LOG_OUT
+});
+export const receiveLogout = () => ({
+  type: RECEIVE_LOG_OUT
+});
+
+
+export function updateEmailWorker(val){
+  return function(dispatch){
+    dispatch(updateEmail(val));
+  }
+}
+
+export function updatePasswordWorker(val){
+  return function(dispatch){
+    dispatch(updatePassword(val));
+  }
+}
 
 export function closeDrawer() {
   return function(dispatch) {
@@ -57,7 +98,7 @@ export function fetchInitFeed() {
   };
 }
 
-export function fetchSerachFeed(value) {
+export function fetchSearchFeed(value) {
   return function(dispatch) {
     dispatch(requestFeed());
     return fetch("http://localhost:5000/api/search?field=" + value, headers)

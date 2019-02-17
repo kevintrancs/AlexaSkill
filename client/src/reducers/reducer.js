@@ -4,10 +4,16 @@ import {
   RECEIVE_SEARCH_FEED,
   RECEIVE_TOPIC_FEED,
   OPEN_SIDE,
-  CLOSE_SIDE
+  CLOSE_SIDE,
+  UPDATE_EMAIL,
+  UPDATE_PASSWORD,
+  REQUEST_LOG_IN,
+  RECEIVE_LOG_IN,
+  REQUEST_LOG_OUT,
+  RECEIVE_LOG_OUT
 } from "../actions/actions";
 
-const reducer = (state = { open: true, loading: false, items: [] }, action) => {
+const reducer = (state = { open: true, loading: false, items: [], loggedIn: false, loggingIn: false, email: "", password: "" }, action) => {
   switch (action.type) {
     case REQUEST_FEED:
       return { ...state, loading: true };
@@ -21,6 +27,18 @@ const reducer = (state = { open: true, loading: false, items: [] }, action) => {
       return { ...state, open: true };
     case CLOSE_SIDE:
       return { ...state, open: false };
+    case UPDATE_EMAIL:
+      return { ...state, email: action.str};
+    case UPDATE_PASSWORD:
+      return { ...state, password: action.str};
+    case REQUEST_LOG_IN:
+      return { ...state, loggedIn: false, loggingIn: true};
+    case RECEIVE_LOG_IN:
+      return { ...state, loggedIn: true, loggingIn: true};
+    case REQUEST_LOG_OUT:
+      return { ...state, loggedIn: true, loggingIn: true}
+    case RECEIVE_LOG_OUT:
+      return {...state, loggedIn: false, loggingIn: false};
     default:
       return state;
   }

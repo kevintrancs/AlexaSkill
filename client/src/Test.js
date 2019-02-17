@@ -39,7 +39,7 @@ import React, { Component } from "react";
 import { connect } from "react-redux";
 import {
   fetchInitFeed,
-  fetchSerachFeed,
+  fetchSearchFeed,
   fetchTopicFeed,
   closeDrawer,
   openDrawer
@@ -344,7 +344,7 @@ class Test extends Component {
 Test.propTypes = {
   classes: PropTypes.object.isRequired,
   fetchInitFeed: PropTypes.func.isRequired,
-  fetchSerachFeed: PropTypes.func.isRequired,
+  fetchSearchFeed: PropTypes.func.isRequired,
   fetchTopicFeed: PropTypes.func.isRequired,
   loading: PropTypes.object.isRequired,
   open: PropTypes.object.isRequired,
@@ -358,7 +358,7 @@ const mapStateToProps = state => ({
 });
 const mapDispatchToProps = {
   getInit: fetchInitFeed,
-  getSearch: fetchSerachFeed,
+  getSearch: fetchSearchFeed,
   getTopic: fetchTopicFeed,
   c: closeDrawer,
   o: openDrawer
