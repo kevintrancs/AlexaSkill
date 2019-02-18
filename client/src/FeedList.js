@@ -27,7 +27,7 @@ import Collapse from "@material-ui/core/Collapse";
 import ExpandLess from "@material-ui/icons/ExpandLess";
 import ExpandMore from "@material-ui/icons/ExpandMore";
 import StarBorder from "@material-ui/icons/StarBorder";
-import FeedList from "./FeedList";
+
 import {
   Report,
   TrendingUp,
@@ -201,198 +201,72 @@ const styles = theme => ({
     paddingLeft: theme.spacing.unit * 4
   }
 });
-class Feed extends Component {
-  constructor(props) {
-    super(props);
-  }
-
-  componentDidMount() {
-    this.props.getInit();
-  }
-  getSearch(event) {
-    if (event.key === "Enter") {
-      var value = event.target.value;
-      if (value !== "") {
-        this.props.getSearch(value);
-      }
-    }
-  }
-
-  handleCategoryChange(category) {
-    if (category === "Trending" || category === "Breaking") {
-      this.props.getInit();
-    } else {
-      this.props.getTopic(category);
-    }
-  }
-
-  handleDrawerOpen = () => {
-    this.props.o();
-    console.log("open triggered");
-  };
-
-  handleDrawerClose = () => {
-    this.props.c();
-    console.log("close triggered");
-  };
-
-  handleListOpen = () => {
-    if (this.props.open_list == true) {
-      this.props.cl();
-      console.log("list close triggered");
-    } else {
-      this.props.ol();
-      console.log("list open triggered");
-    }
-  };
-
+class FeedList extends Component {
   render() {
     const { classes, theme } = this.props;
     const { open, open_list } = this.props;
-    const icons = [
-      <Report />,
-      <TrendingUp />,
-      <Business />,
-      <EventSeat />,
-      <Motorcycle />,
-      <Event />,
-      <LocalHospital />,
-      <History />,
-      <Bookmark />,
-      <Settings />
-    ];
     return (
-      <div className={classes.root}>
-        <CssBaseline />
-        <AppBar
-          position="absolute"
-          className={classNames(classes.appBar, {
-            [classes.appBarShift]: open
-          })}
-        >
-          <Toolbar disableGutters={!open}>
-            <IconButton
-              color="inherit"
-              aria-label="Open drawer"
-              onClick={this.handleDrawerOpen}
-              className={classNames(classes.menuButton, open && classes.hide)}
-            >
-              <MenuIcon />
-            </IconButton>
-            <Typography variant="h6" color="inherit" noWrap>
-              CleverNews
-            </Typography>
-            <div className={classes.search}>
-              <div className={classes.searchIcon}>
-                <SearchIcon />
-              </div>
-              <InputBase
-                placeholder="Search…"
-                onKeyPress={this.getSearch.bind(this)}
-                classes={{
-                  root: classes.inputRoot,
-                  input: classes.inputInput
-                }}
-              />
-            </div>
-            <div>
-              {" "}
-              {this.props.loading ? (
-                <CircularProgress
-                  className={classes.progress}
-                  color="secondary"
-                />
-              ) : (
-                " "
-              )}
-            </div>
-          </Toolbar>
-        </AppBar>
-        <Drawer
-          className={classes.drawer}
-          variant="persistent"
-          anchor="left"
-          open={open}
-          classes={{
-            paper: classes.drawerPaper
-          }}
-        >
-          <div className={classes.drawerHeader}>
-            <img className={classes.logo} src="/clever.png" />
-            <IconButton onClick={this.handleDrawerClose}>
-              <ChevronLeftIcon />
-            </IconButton>
-          </div>
-          <Divider />
-          <List>
-            {[
-              "Breaking",
-              "Trending",
-              "Business",
-              "Politics",
-              "Sports",
-              "Entertainment",
-              "Health",
-              "History",
-              "Bookmarks",
-              "Settings"
-            ].map((text, index) => (
-              <ListItem
-                button
-                key={text}
-                onClick={this.handleCategoryChange.bind(this, text)}
-              >
-                <ListItemIcon>{icons[index]}</ListItemIcon>
-                <ListItemText primary={text} />
+      <div>
+        <List className={classNames(classes.layout)}>
+          {this.props.items.map(function(item, index) {
+            // Dumb way to do it, but ay works will fix sometime eventually
+            var x = item.name;
+            var y = item.description;
+            var i = document.createElement("div");
+            var j = document.createElement("div");
+            i.innerHTML = item.name;
+            j.innerHTML = item.description;
+            x = i.childNodes[0].nodeValue;
+            y = j.childNodes[0].nodeValue;
+
+            return (
+              <ListItem key={item.name}>
+                <Card className={classes.card}>
+                  <div className={classes.details}>
+                    <CardContent className={classes.content}>
+                      <Typography component="h5" variant="h6">
+                        <a href={item.url} target="_blank">
+                          {x}
+                        </a>
+                      </Typography>
+                      <Typography variant="subtitle1" color="textSecondary">
+                        {y}
+                      </Typography>
+                    </CardContent>
+                    <div className={classes.controls}>
+                      <Typography
+                        className={classes.addition_details}
+                        variant="subtitle1"
+                        color="primary"
+                      >
+                        {item.category}
+                      </Typography>
+
+                      <Typography
+                        className={classes.addition_details}
+                        variant="subtitle1"
+                        color="secondary"
+                      >
+                        {item.provider}
+                      </Typography>
+                    </div>
+                  </div>
+                  <CardMedia
+                    className={classes.cover}
+                    image={
+                      item.thumbnail !== " " ? item.thumbnail : "/clever.png"
+                    }
+                    title="Image"
+                  />
+                </Card>
               </ListItem>
-            ))}
-            <ListItem button key={"My News"} onClick={this.handleListOpen}>
-              <ListItemIcon>
-                <FilterDrama />
-              </ListItemIcon>
-              <ListItemText primary="My News" />
-              {open_list ? <ExpandLess /> : <ExpandMore />}
-            </ListItem>
-            <Collapse in={open_list} timeout="auto" unmountOnExit>
-              <List component="div" disablePadding>
-                <ListItem button className={classes.nested}>
-                  <ListItemIcon>
-                    <StarBorder />
-                  </ListItemIcon>
-                  <ListItemText inset primary="ML 1" />
-                </ListItem>
-                <ListItem button className={classes.nested}>
-                  <ListItemIcon>
-                    <StarBorder />
-                  </ListItemIcon>
-                  <ListItemText inset primary="ML 2" />
-                </ListItem>
-                <ListItem button className={classes.nested}>
-                  <ListItemIcon>
-                    <StarBorder />
-                  </ListItemIcon>
-                  <ListItemText inset primary="ML 3" />
-                </ListItem>
-              </List>
-            </Collapse>
-          </List>
-        </Drawer>
-        <main
-          className={classNames(classes.content, {
-            [classes.contentShift]: open
+            );
           })}
-        >
-          <div className={classes.appBarSpacer} />
-          <FeedList />
-        </main>
+        </List>
       </div>
     );
   }
 }
-Feed.propTypes = {
-  classes: PropTypes.object.isRequired
-};
-
 const mapStateToProps = state => ({
   loading: state.loading,
   open: state.open,
@@ -414,5 +288,5 @@ export default compose(
     mapStateToProps,
     mapDispatchToProps
   ),
-  withStyles(styles, { name: "Feed" })
-)(Feed);
+  withStyles(styles, { name: "FeedList" })
+)(FeedList);

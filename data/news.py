@@ -7,7 +7,7 @@ from boto3.dynamodb.conditions import Key
 import logging
 import time
 import hashlib
-
+from datetime import datetime
 # Default configs
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -55,6 +55,7 @@ def get_keyword(term):
         d['mentions'] = article['mentions'] if 'mentions' in article else " "
         d['thumbnail'] = article['image']['thumbnail']['contentUrl'] if 'image' in article else " "
         d['query_use'] = queried
+        d['hoursTime'] = datetime.now().strftime("%s")
         data.append(d)
     return data
 
