@@ -45,9 +45,12 @@ import {
   fetchSearchFeed,
   fetchTopicFeed,
   closeDrawer,
-  openDrawer
+  openDrawer,
+  loggedOutWorker,
+  loggingOutWorker
 } from "../actions/actions";
 import { MenuItem } from '@material-ui/core';
+import { Auth } from 'aws-amplify';
 const drawerWidth = 240;
 
 const styles = theme => ({
@@ -228,6 +231,20 @@ class Header extends Component {
         console.log("close triggered");
     };
 
+
+    // I'm handling the logout click in the header since there's no forms to
+    // worry about, and it's fairly simply. Tgod for redux tbh
+    handleLogoutClick = async event => {
+      try {
+        this.props.loggingOut();
+        await Auth.signOut();
+        alert("Logged out Successfully");
+        this.props.loggedOut();
+      } catch (e) {
+        alert(e);
+      }
+    }
+
     render(){
         const {classes, theme } = this.props;
         const {open} = this.props;
@@ -243,6 +260,8 @@ class Header extends Component {
             <Bookmark />,
             <Settings />
         ];
+        
+
         return (
         <div>
             <AppBar
@@ -287,7 +306,18 @@ class Header extends Component {
                 " "
               )}
             </div>
-            <Link to='/login'>Login</Link>
+            {
+              !this.props.loggedIn ? 
+              <div className = "LoginButtons">
+                <Button className={'pull-right'} color='inherit' component={Link} to='/login'>Login!</Button>
+                <Button className={'pull-right'} color='inherit' component={Link} to='/signup'>Sign up!</Button>
+              </div>
+              :
+              <div>
+                <Button onClick={this.handleLogoutClick} color = 'inherit'>Logout</Button>
+                <Typography> {this.props.email} </Typography>
+              </div>
+            }
           </Toolbar>
         </AppBar>
         <Drawer
@@ -341,7 +371,10 @@ Header.PropTypes = {
 
 const mapStateToProps = state => ({
     loading: state.loading,
-    open: state.open
+    open: state.open,
+    email: state.email,
+    loggedIn: state.loggedIn,
+    loggingIn: state.loggingIn
 });
 
 const mapDispatchToProps = {
@@ -349,7 +382,9 @@ const mapDispatchToProps = {
     getSearch: fetchSearchFeed,
     getTopic: fetchTopicFeed,
     c: closeDrawer,
-    o: openDrawer
+    o: openDrawer,
+    loggingOut: loggingOutWorker,
+    loggedOut: loggedOutWorker
 };
 
 export default compose(

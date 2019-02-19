@@ -12,7 +12,7 @@ import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
 import Paper from '@material-ui/core/Paper';
 import Typography from '@material-ui/core/Typography';
 import withStyles from '@material-ui/core/styles/withStyles';
-import { updateEmailWorker, updatePasswordWorker, loggingInWorker, loggedInWorker } from '../actions/actions';
+import { updateEmailWorker, updatePasswordWorker, loggingInWorker, loggedInWorker, updatePasswordConfirmWorker } from '../actions/actions';
 import { connect } from 'react-redux';
 import { compose } from 'redux';
 import classNames from "classnames";
@@ -50,9 +50,16 @@ const styles = theme => ({
   },
 });
 
-class Login extends Component {
+class Signup extends Component {
     constructor(props){
         super(props);
+
+        this.state = { 
+            needConfirm: false,
+            isLoading: false,
+            confirmCode: "",
+            newUser: null
+        };
     }
 
     // Functions to continually update username/password entered thus far
@@ -66,26 +73,63 @@ class Login extends Component {
             this.props.putPassword(event.target.value);
         }
     }
-
-    // Function to log the user in when they hit the form submit button.
-    // Sets loggingIn to true if we want to render some loading thing,
-    // Logs in, then sets loggedIn to true and loggingIn to false, then
-    // pushes the home page to the history for rendering
-    handleSubmit = async event => {
-        event.preventDefault();
-
-        try {
-          this.props.loggingIn();
-          await Auth.signIn(this.props.email, this.props.password);
-          alert("Logged In");
-          this.props.loggedIn();
-          this.props.history.push('/');
-        } catch (e) {
-          alert(e.message);
+    handlePasswordConfirmChange = event => {
+        if(event.target.value !== ""){
+            this.props.putPasswordConfirm(event.target.value);
+        }
+    }
+    handleConfirmCodeChange = event => {
+        if(event.target.value !== ""){
+            this.setState ({ confirmCode: ""+event.target.value});
         }
     }
 
-    render() {
+
+    // Simple function to make sure passwords match
+    checkPassword(pass1, pass2){
+        return pass1 === pass2;
+    }
+
+
+    
+    handleSignupSubmit = async event => {
+        event.preventDefault();
+        alert(this.props.password);
+        alert(this.props.passwordConfirm);
+        if(this.checkPassword(this.props.password, this.props.passwordConfirm)){
+            try {
+                this.setState ({ isLoading: true });
+                const newUser = await Auth.signUp({
+                    username: this.props.email,
+                    password: this.props.password
+                });
+                this.setState ({ newUser });
+                this.setState ({ isLoading: false });
+                this.setState({ needConfirm: true});
+            } catch (e) {
+                alert(e.message);
+            }
+        } else {
+            alert("Passwords do not match, sry :/");
+        }
+    }
+
+    handleConfirmSubmit = async event => {
+        event.preventDefault();
+        try {
+            this.setState({ isLoading: true });
+
+            await Auth.confirmSignUp(this.props.email, this.state.confirmCode);
+            this.props.loggingIn();
+            await Auth.signIn(this.props.email, this.props.password);
+            this.props.loggedIn();
+            this.props.history.push('/');
+        } catch (e) {
+            alert(e.message);
+        }
+    }
+
+    renderSignupForm() {
         const {classes, theme } = this.props;
         return (
             <main className={classes.main}>
@@ -97,7 +141,7 @@ class Login extends Component {
                 <Typography component="h1" variant="h5">
                   Sign in
                 </Typography>
-                <form className={classes.form} onSubmit={this.handleSubmit}>
+                <form className={classes.form} onSubmit={this.handleSignupSubmit}>
                   <FormControl
                     margin="normal"
                     required fullWidth
@@ -109,10 +153,10 @@ class Login extends Component {
                     <InputLabel htmlFor="password">Password</InputLabel>
                     <Input name="password" type="password" id="password" autoComplete="current-password" />
                   </FormControl>
-                  <FormControlLabel
-                    control={<Checkbox value="remember" color="primary" />}
-                    label="Remember me"
-                  />
+                  <FormControl margin="normal" required fullWidth onChange={this.handlePasswordConfirmChange}>
+                    <InputLabel htmlFor="password">Confirm Password</InputLabel>
+                    <Input name="password" type="password" id="passwordConfirm" autoComplete="current-password" />
+                  </FormControl>
                   <Button
                     type="submit"
                     fullWidth
@@ -128,15 +172,59 @@ class Login extends Component {
           );
     }
 
+    renderConfirmForm() {
+        const {classes, theme} = this.props;
+        return (
+            <main className={classes.main}>
+              <CssBaseline />
+              <Paper className={classes.paper}>
+                <Avatar className={classes.avatar}>
+                  <LockOutlinedIcon />
+                </Avatar>
+                <Typography component="h1" variant="h5">
+                  Check your email for confirm code
+                </Typography>
+                <form className={classes.form} onSubmit={this.handleConfirmSubmit}>
+                  <FormControl
+                    margin="normal"
+                    required fullWidth
+                    onChange={this.handleConfirmCodeChange}>
+                    <InputLabel htmlFor="email">Confirmation Code</InputLabel>
+                    <Input id="email" name="confirm" autoComplete="email" autoFocus />
+                  </FormControl>
+                  <Button
+                    type="submit"
+                    fullWidth
+                    variant="contained"
+                    color="primary"
+                    className={classes.submit}
+                  >
+                    Sign in
+                  </Button>
+                </form>
+              </Paper>
+            </main>
+        );
+    }
+
+    render() {
+        return (
+            <div>
+                {this.state.needConfirm ? this.renderConfirmForm() : this.renderSignupForm() }
+            </div>
+        );
+    }
+
 }
 
-Login.propTypes = {
+Signup.propTypes = {
   classes: PropTypes.object.isRequired,
 };
 
 const mapStateToProps = state => ({
     email: state.email,
     password: state.password,
+    passwordConfirm: state.passwordConfirm,
     isLoggedIn: state.loggedIn,
     isLoggingIn: state.loggingIn
 });
@@ -144,6 +232,7 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = {
     putEmail: updateEmailWorker,
     putPassword: updatePasswordWorker,
+    putPasswordConfirm: updatePasswordConfirmWorker,
     loggingIn: loggingInWorker,
     loggedIn: loggedInWorker
 };
@@ -153,5 +242,5 @@ export default compose (
         mapStateToProps,
         mapDispatchToProps
     ),
-    withStyles(styles, { name: 'Login' })
-)(Login);
+    withStyles(styles, { name: 'Signup' })
+)(Signup);
