@@ -16,8 +16,8 @@ import json
 import operator
 import os
 from data.news import headers, pull
-from HTMLParser import HTMLParser
-unescape = HTMLParser().unescape
+#from HTMLParser import HTMLParser
+#unescape = HTMLParser().unescape
 
 app = Flask(__name__)
 CORS(app)

@@ -28,6 +28,7 @@ import ExpandLess from "@material-ui/icons/ExpandLess";
 import ExpandMore from "@material-ui/icons/ExpandMore";
 import StarBorder from "@material-ui/icons/StarBorder";
 import FeedList from "./FeedList";
+import Setting from "./Setting";
 import {
   Report,
   TrendingUp,
@@ -50,7 +51,8 @@ import {
   closeDrawer,
   openDrawer,
   openList,
-  closeList
+  closeList, 
+  chooseSettings
 } from "./actions/actions";
 const drawerWidth = 240;
 
@@ -211,6 +213,7 @@ class Feed extends Component {
   }
   getSearch(event) {
     if (event.key === "Enter") {
+      
       var value = event.target.value;
       if (value !== "") {
         this.props.getSearch(value);
@@ -225,6 +228,11 @@ class Feed extends Component {
       this.props.getTopic(category);
     }
   }
+
+  handleSettingsClick = () => {
+    this.props.settings();
+    console.log("Settings clicked");
+  };
 
   handleDrawerOpen = () => {
     this.props.o();
@@ -258,8 +266,7 @@ class Feed extends Component {
       <Event />,
       <LocalHospital />,
       <History />,
-      <Bookmark />,
-      <Settings />
+      <Bookmark />
     ];
     return (
       <div className={classes.root}>
@@ -334,8 +341,7 @@ class Feed extends Component {
               "Entertainment",
               "Health",
               "History",
-              "Bookmarks",
-              "Settings"
+              "Bookmarks"
             ].map((text, index) => (
               <ListItem
                 button
@@ -346,6 +352,12 @@ class Feed extends Component {
                 <ListItemText primary={text} />
               </ListItem>
             ))}
+            <ListItem button key={"Settings"} onClick={this.handleSettingsClick}>
+              <ListItemIcon>
+                <Settings />
+              </ListItemIcon>
+              <ListItemText primary="Settings" />
+            </ListItem>
             <ListItem button key={"My News"} onClick={this.handleListOpen}>
               <ListItemIcon>
                 <FilterDrama />
@@ -383,7 +395,7 @@ class Feed extends Component {
           })}
         >
           <div className={classes.appBarSpacer} />
-          <FeedList />
+          {this.props.setting_state ? <Setting /> : <FeedList />}
         </main>
       </div>
     );
@@ -397,7 +409,8 @@ const mapStateToProps = state => ({
   loading: state.loading,
   open: state.open,
   items: state.items,
-  open_list: state.open_list
+  open_list: state.open_list,
+  setting_state: state.setting_state
 });
 const mapDispatchToProps = {
   getInit: fetchInitFeed,
@@ -406,7 +419,8 @@ const mapDispatchToProps = {
   c: closeDrawer,
   o: openDrawer,
   cl: closeList,
-  ol: openList
+  ol: openList,
+  settings: chooseSettings
 };
 
 export default compose(

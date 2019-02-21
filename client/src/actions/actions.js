@@ -6,6 +6,7 @@ export const CLOSE_SIDE = "CLOSE_SIDE";
 export const OPEN_SIDE = "OPEN_SIDE";
 export const OPEN_NEST = "OPEN_NEST";
 export const CLOSE_NEST = "CLOSE_NEST";
+export const SETTINGS_CHOSEN = "SETTINGS_CHOSEN"
 
 const headers = {
   "Access-Control-Allow-Origin": "*",
@@ -39,6 +40,9 @@ export const openNest = () => ({
 export const closeNest = () => ({
   type: CLOSE_NEST
 });
+export const settingsChosen = () => ({
+  type: SETTINGS_CHOSEN
+});
 
 export function closeDrawer() {
   return function(dispatch) {
@@ -60,6 +64,12 @@ export function openList() {
 export function closeList() {
   return function(dispatch){
     dispatch(closeNest());
+  };
+}
+
+export function chooseSettings() {
+  return function(dispatch) {
+    dispatch(settingsChosen());
   };
 }
 
@@ -101,3 +111,5 @@ export function fetchTopicFeed(category) {
       });
   };
 }
+
+
