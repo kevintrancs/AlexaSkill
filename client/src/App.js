@@ -1,6 +1,5 @@
 import React, { Component } from "react";
 import "./App.css";
-import Feed from "./Feed";
 import Header from "./containers/Header";
 import Routes from "./Routes";
 

@@ -168,8 +168,7 @@ class Feed extends Component {
   }
 
   render() {
-    const { classes, theme } = this.props;
-    const { open } = this.props;
+    const { classes, theme, open } = this.props;
     return (
       <div className={classes.root}>
         <CssBaseline />
@@ -191,8 +190,8 @@ Feed.propTypes = {
 
 const mapStateToProps = state => ({
   loading: state.loading,
-  open: state.open,
-  items: state.items
+  items: state.items,
+  open: state.open
 });
 const mapDispatchToProps = {
   getInit: fetchInitFeed
