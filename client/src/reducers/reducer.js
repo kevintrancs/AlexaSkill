@@ -7,7 +7,6 @@ import {
   CLOSE_SIDE,
   UPDATE_EMAIL,
   UPDATE_PASSWORD,
-  UPDATE_PASSWORD_CONFIRM,
   REQUEST_LOG_IN,
   RECEIVE_LOG_IN,
   REQUEST_LOG_OUT,
@@ -32,8 +31,6 @@ const reducer = (state = { open: true, loading: false, items: [], loggedIn: fals
       return { ...state, email: action.str};
     case UPDATE_PASSWORD:
       return { ...state, password: action.str};
-    case UPDATE_PASSWORD_CONFIRM:
-      return { ...state, passwordConfirm: action.str};
     case REQUEST_LOG_IN:
       return { ...state, loggedIn: false, loggingIn: true};
     case RECEIVE_LOG_IN:

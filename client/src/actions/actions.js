@@ -8,7 +8,6 @@ export const CLOSE_SIDE = "CLOSE_SIDE";
 export const OPEN_SIDE = "OPEN_SIDE";
 export const UPDATE_EMAIL = "UPDATE_EMAIL";
 export const UPDATE_PASSWORD = "UPDATE_PASSWORD";
-export const UPDATE_PASSWORD_CONFIRM = "UPDATE_PASSWORD_CONFIRM";
 export const REQUEST_LOG_IN = "REQUEST_LOG_IN";
 export const RECEIVE_LOG_IN = "RECEIVE_LOG_IN";
 export const REQUEST_LOG_OUT = "REQUEST_LOG_OUT";
@@ -46,10 +45,6 @@ export const updateEmail = str => ({
 });
 export const updatePassword = str => ({
   type: UPDATE_PASSWORD,
-  str: str
-});
-export const updatePasswordConfirm = str => ({
-  type: UPDATE_PASSWORD_CONFIRM,
   str: str
 });
 export const requestLogin = () => ({
@@ -92,19 +87,13 @@ export function loggedOutWorker(){
 export function updateEmailWorker(val){
   return function(dispatch){
     dispatch(updateEmail(val));
-  }
+  };
 }
 
 export function updatePasswordWorker(val){
   return function(dispatch){
     dispatch(updatePassword(val));
-  }
-}
-
-export function updatePasswordConfirmWorker(val){
-  return function(dispatch){
-    dispatch(updatePasswordConfirm(val));
-  }
+  };
 }
 
 export function closeDrawer() {

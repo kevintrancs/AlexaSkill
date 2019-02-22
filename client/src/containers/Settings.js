@@ -51,7 +51,7 @@ const styles = theme => ({
   },
 });
 
-class Login extends Component {
+class Settings extends Component {
     constructor(props){
         super(props);
     }
@@ -131,7 +131,7 @@ class Login extends Component {
 
 }
 
-Login.propTypes = {
+Settings.propTypes = {
   classes: PropTypes.object.isRequired,
 };
 
@@ -154,5 +154,5 @@ export default compose (
         mapStateToProps,
         mapDispatchToProps
     ),
-    withStyles(styles, { name: 'Login' })
-)(Login);
+    withStyles(styles, { name: 'Settings' })
+)(Settings);

@@ -216,6 +216,8 @@ class Header extends Component {
     handleCategoryChange(category) {
         if (category === "Trending" || category === "Breaking") {
             this.props.getInit();
+        } else if (category === "Settings"){
+            this.props.history.push('/settings');
         } else {
             this.props.getTopic(category);
         }
@@ -347,17 +349,25 @@ class Header extends Component {
             "Health",
             "History",
             "Bookmarks",
-            "Settings"
             ].map((text, index) => (
-            <ListItem
-                button
-                key={text}
-                onClick={this.handleCategoryChange.bind(this, text)}
-            >
+              <ListItem
+                  button
+                  key={text}
+                  onClick={this.handleCategoryChange.bind(this, text)}
+              >
                 <ListItemIcon>{icons[index]}</ListItemIcon>
                 <ListItemText primary={text} />
-            </ListItem>
+              </ListItem>
             ))}
+            <ListItem
+              button
+              key = {"Settings"}
+              component={Link}
+              to='/settings'
+            >
+              <ListItemIcon>{icons[icons.length-1]}</ListItemIcon>
+              <ListItemText primary={"Settings"} />
+            </ListItem>
         </List>
         </Drawer>
         </div>

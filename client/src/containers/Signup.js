@@ -12,6 +12,7 @@ import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
 import Paper from '@material-ui/core/Paper';
 import Typography from '@material-ui/core/Typography';
 import withStyles from '@material-ui/core/styles/withStyles';
+import CircularProgress from '@material-ui/core/CircularProgress';
 import { updateEmailWorker, updatePasswordWorker, loggingInWorker, loggedInWorker, updatePasswordConfirmWorker } from '../actions/actions';
 import { connect } from 'react-redux';
 import { compose } from 'redux';
@@ -58,11 +59,14 @@ class Signup extends Component {
             needConfirm: false,
             isLoading: false,
             confirmCode: "",
+            confirmPass: "",
             newUser: null
         };
     }
 
     // Functions to continually update username/password entered thus far
+    // First two are done in store because we need username + pass in other places,
+    // Last two are done local to this container bc we only need them here
     handleEmailChange = event => {
         if(event.target.value !== ""){
             this.props.putEmail(event.target.value);
@@ -75,12 +79,12 @@ class Signup extends Component {
     }
     handlePasswordConfirmChange = event => {
         if(event.target.value !== ""){
-            this.props.putPasswordConfirm(event.target.value);
+            this.setState ({ confirmPass: ""+event.target.value });
         }
     }
     handleConfirmCodeChange = event => {
         if(event.target.value !== ""){
-            this.setState ({ confirmCode: ""+event.target.value});
+            this.setState ({ confirmCode: ""+event.target.value });
         }
     }
 
@@ -95,8 +99,8 @@ class Signup extends Component {
     handleSignupSubmit = async event => {
         event.preventDefault();
         alert(this.props.password);
-        alert(this.props.passwordConfirm);
-        if(this.checkPassword(this.props.password, this.props.passwordConfirm)){
+        alert(this.state.confirmPass);
+        if(this.checkPassword(this.props.password, this.state.confirmPass)){
             try {
                 this.setState ({ isLoading: true });
                 const newUser = await Auth.signUp({
@@ -123,6 +127,7 @@ class Signup extends Component {
             this.props.loggingIn();
             await Auth.signIn(this.props.email, this.props.password);
             this.props.loggedIn();
+            this.setState({ isLoading: false });
             this.props.history.push('/');
         } catch (e) {
             alert(e.message);
@@ -166,6 +171,10 @@ class Signup extends Component {
                   >
                     Sign in
                   </Button>
+                  {
+                    this.state.isLoading && 
+                    <CircularProgress className={classes.progress} />
+                  }
                 </form>
               </Paper>
             </main>
@@ -201,6 +210,10 @@ class Signup extends Component {
                   >
                     Sign in
                   </Button>
+                  {
+                    this.state.isLoading && 
+                    <CircularProgress className={classes.progress} />
+                  }
                 </form>
               </Paper>
             </main>
@@ -224,7 +237,6 @@ Signup.propTypes = {
 const mapStateToProps = state => ({
     email: state.email,
     password: state.password,
-    passwordConfirm: state.passwordConfirm,
     isLoggedIn: state.loggedIn,
     isLoggingIn: state.loggingIn
 });
@@ -232,7 +244,6 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = {
     putEmail: updateEmailWorker,
     putPassword: updatePasswordWorker,
-    putPasswordConfirm: updatePasswordConfirmWorker,
     loggingIn: loggingInWorker,
     loggedIn: loggedInWorker
 };

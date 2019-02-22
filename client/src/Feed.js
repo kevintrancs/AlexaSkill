@@ -1,5 +1,6 @@
 // Todo: Clean up
 import Header from './components/Header';
+import NewsCard from './components/NewsCard';
 
 import { compose } from "redux";
 import PropTypes from "prop-types";
@@ -266,6 +267,11 @@ class Feed extends Component {
 
               return (
                 <ListItem key={item.name}>
+                  <NewsCard item={item}/>
+                </ListItem>
+
+                /*
+                <ListItem key={item.name}>
                   <Card className={classes.card}>
                     <div className={classes.details}>
                       <CardContent className={classes.content}>
@@ -304,7 +310,8 @@ class Feed extends Component {
                       title="Image"
                     />
                   </Card>
-                </ListItem>
+                  
+                </ListItem>*/
               );
             })}
           </List>
