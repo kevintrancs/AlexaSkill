@@ -18,9 +18,6 @@ import SearchIcon from "@material-ui/icons/Search";
 import InputBase from "@material-ui/core/InputBase";
 import ListItem from "@material-ui/core/ListItem";
 import ListItemText from "@material-ui/core/ListItemText";
-import Card from "@material-ui/core/Card";
-import CardContent from "@material-ui/core/CardContent";
-import CardMedia from "@material-ui/core/CardMedia";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import {
   Report,
@@ -39,7 +36,7 @@ import React, { Component } from "react";
 import { connect } from "react-redux";
 import {
   fetchInitFeed,
-  fetchSerachFeed,
+  fetchSearchFeed,
   fetchTopicFeed,
   closeDrawer,
   openDrawer
@@ -358,7 +355,7 @@ const mapStateToProps = state => ({
 });
 const mapDispatchToProps = {
   getInit: fetchInitFeed,
-  getSearch: fetchSerachFeed,
+  getSearch: fetchSearchFeed,
   getTopic: fetchTopicFeed,
   c: closeDrawer,
   o: openDrawer

@@ -6,10 +6,35 @@ import {
   OPEN_SIDE,
   CLOSE_SIDE,
   OPEN_NEST,
-  CLOSE_NEST
+  CLOSE_NEST,
+  REQUEST_LOG_IN,
+  RECEIVE_LOG_IN,
+  REQUEST_LOG_OUT,
+  RECEIVE_LOG_OUT,
+  UPDATE_EMAIL,
+  UPDATE_PASSWORD,
+  UPDATE_PASSWORD_CONFIRM,
+  REQUEST_SIGNUP,
+  RECEIVE_SIGNUP
 } from "../actions/actions";
 
-const reducer = (state = { open: true, open_list: false, loading: false, items: [] }, action) => {
+const startState = {
+  open: true,
+  open_list: false,
+  loading: false,
+  items: [],
+  access: localStorage.getItem("access"),
+  refresh: localStorage.getItem("refresh"),
+  id: localStorage.getItem("id"),
+  loggedIn: false,
+  loggingIn: false,
+  email: localStorage.getItem("email"),
+  password: "",
+  passwordConfirm: "",
+  chooseSettings: false
+};
+
+const reducer = (state = startState, action) => {
   switch (action.type) {
     case REQUEST_FEED:
       return { ...state, loading: true };
@@ -26,7 +51,33 @@ const reducer = (state = { open: true, open_list: false, loading: false, items: 
     case OPEN_NEST:
       return { ...state, open_list: true };
     case CLOSE_NEST:
-      return { ...state, open_list: false}
+      return { ...state, open_list: false };
+    case REQUEST_SIGNUP:
+      return { ...state };
+    case RECEIVE_SIGNUP:
+      return { ...state };
+    case REQUEST_LOG_IN:
+      return { ...state };
+    case RECEIVE_LOG_IN:
+      return {
+        ...state,
+        access: action.json.access_token,
+        refresh: action.json.access_token,
+        id: action.json.id_token
+      };
+    case UPDATE_EMAIL:
+      return { ...state, email: action.str };
+    case UPDATE_PASSWORD:
+      return { ...state, password: action.str };
+    case UPDATE_PASSWORD_CONFIRM:
+      return { ...state, passwordConfirm: action.str };
+    case REQUEST_LOG_OUT:
+      return {
+        ...state,
+        access: null,
+        refresh: null,
+        id: null
+      };
     default:
       return state;
   }
