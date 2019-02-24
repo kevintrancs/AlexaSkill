@@ -22,7 +22,8 @@ Everything working before +
 
 - [ ] ML prepared
 - [ ] ML API ready for client
-- [ ] Bookmarks per user and returning list of articles
-- [ ] UI for Settings
+- [ x ] Bookmarks per user and returning list of articles
+- [ x ] UI for Settings
 - [ ] Test for deployment
 - [ ] Ahem, deploy it
+- [ ] Actual error checking and finding bugs

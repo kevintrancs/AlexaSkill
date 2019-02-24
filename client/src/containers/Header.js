@@ -1,4 +1,6 @@
 import React, { Component } from "react";
+import { withRouter } from "react-router";
+
 import { compose } from "redux";
 import PropTypes from "prop-types";
 import classNames from "classnames";
@@ -48,7 +50,8 @@ import {
   loggedOutWorker,
   loggingOutWorker,
   openList,
-  closeList
+  closeList,
+  fetchBookmarks
 } from "../actions/actions";
 const drawerWidth = 240;
 
@@ -223,9 +226,18 @@ class Header extends Component {
     this.setState({ selectedIndex: index });
     if (category === "Trending" || category === "Breaking") {
       this.props.getInit();
+    } else if (category === "Bookmarks") {
+      if (this.props.access != "null" || this.props.access != null)
+        this.props.getBookmarks(
+          this.props.access,
+          this.props.id,
+          this.props.refresh
+        );
+      else this.props.getInit();
     } else {
       this.props.getTopic(category);
     }
+    // temp fix
   }
   handleDrawerOpen = () => {
     this.props.o();
@@ -345,7 +357,10 @@ class Header extends Component {
                 <Button onClick={this.handleLogoutClick} color="inherit">
                   Logout
                 </Button>
-                <Typography> {this.props.email} </Typography>
+                <Typography style={{ float: "left", paddingTop: "8px" }}>
+                  {" "}
+                  {this.props.email}{" "}
+                </Typography>
               </div>
             )}
           </Toolbar>
@@ -379,6 +394,8 @@ class Header extends Component {
               "Bookmarks"
             ].map((text, index) => (
               <ListItem
+                component={Link}
+                to="/"
                 button
                 key={text}
                 onClick={this.handleCategoryChange.bind(this, text, index)}
@@ -440,7 +457,9 @@ const mapStateToProps = state => ({
   open: state.open,
   email: state.email,
   open_list: state.open_list,
-  access: state.access
+  access: state.access,
+  id: state.id,
+  refresh: state.refresh
 });
 
 const mapDispatchToProps = {
@@ -452,7 +471,8 @@ const mapDispatchToProps = {
   loggingOut: loggingOutWorker,
   loggedOut: loggedOutWorker,
   cl: closeList,
-  ol: openList
+  ol: openList,
+  getBookmarks: fetchBookmarks
 };
 
 export default compose(
