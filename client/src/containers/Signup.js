@@ -8,6 +8,7 @@ import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Checkbox from '@material-ui/core/Checkbox';
 import Input from '@material-ui/core/Input';
 import InputLabel from '@material-ui/core/InputLabel';
+import PersonAddIcon from '@material-ui/icons/PersonAdd';
 import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
 import Paper from '@material-ui/core/Paper';
 import Typography from '@material-ui/core/Typography';
@@ -141,10 +142,10 @@ class Signup extends Component {
               <CssBaseline />
               <Paper className={classes.paper}>
                 <Avatar className={classes.avatar}>
-                  <LockOutlinedIcon />
+                  <PersonAddIcon />
                 </Avatar>
                 <Typography component="h1" variant="h5">
-                  Sign in
+                  Sign Up
                 </Typography>
                 <form className={classes.form} onSubmit={this.handleSignupSubmit}>
                   <FormControl
@@ -169,7 +170,7 @@ class Signup extends Component {
                     color="primary"
                     className={classes.submit}
                   >
-                    Sign in
+                    Sign Up
                   </Button>
                   {
                     this.state.isLoading && 
