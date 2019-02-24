@@ -19,12 +19,14 @@ from warrant import Cognito
 from jose import jwt, jwk
 app = Flask(__name__)
 CORS(app)
-db = boto3.resource('dynamodb')
-table = db.Table('NewsHashed')
-users_table = db.Table('userData')
+
 with open('../server/constants.json') as f:
     CONSTANTS = json.load(f)
 
+db = boto3.resource('dynamodb', aws_access_key_id=CONSTANTS['aws_access_key_id'],
+    aws_secret_access_key=CONSTANTS['aws_secret_key_id'])
+table = db.Table('NewsHashed')
+users_table = db.Table('userData')
 
 def get_syset_info(ids):
     terms = set()
