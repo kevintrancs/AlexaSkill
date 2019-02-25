@@ -3,14 +3,15 @@ import numpy as np
 import nltk
 import boto3
 import json
-nltk.download('punkt')
-nltk.download('stopwords')
+#nltk.download('punkt')
+#nltk.download('stopwords')
 #nltk.download('wordnet')
 import re
 from nltk.corpus import stopwords 
 #from nltk.tokenize import word_tokenize, sent_tokenize 
 #from nltk.stem import WordNetLemmatizer
 import math
+from ast import literal_eval
 
 with open('../server/constants.json') as f:
     CONSTANTS = json.load(f)
@@ -153,6 +154,106 @@ new_dict = df.set_index('id').T.to_dict('list')
 new_dict = pd.Series(df.keywords.values,index=df.id).to_dict()
 #print(new_dict)
 
+##########################################################################################
+'''
+df_idf = pd.read_csv('./NewsHashed.csv', sep=',')
+#print(df2.head())
+
+df_idf['text'] = df_idf['name'] + " " + df_idf['description']
+df_idf['text'] = df_idf['text'].apply(lambda x:pre_process(x))
+
+#print(df_idf['text'][2])
+
+docs = df_idf['text'].tolist()
+cv = CountVectorizer(max_df=0.85,stop_words=stopwords)
+word_count_vector = cv.fit_transform(docs)
+#print(list(cv.vocabulary_.keys())[:10])
+
+tfidf_transformer = TfidfTransformer(smooth_idf=True,use_idf=True)
+tfidf_transformer.fit(word_count_vector)
+
+feature_names = cv.get_feature_names()
+doc = docs[3]
+tf_idf_vector = tfidf_transformer.transform(cv.transform([doc]))
+sorted_items = sort_coo(tf_idf_vector.tocoo())
+doc3_keywords = extract_topn_from_vector(feature_names,sorted_items,10)
+
+df_idf['keywords'] = np.empty((len(df_idf), 0)).tolist()
+#print(df_idf.iloc[3]['keywords'])
+print(len(docs))
+
+keyword_dict = {}
+for i in range(len(docs)):
+    tf_idf_vector = tfidf_transformer.transform(cv.transform([docs[i]]))
+    sorted_items = sort_coo(tf_idf_vector.tocoo())
+    kws = extract_topn_from_vector(feature_names,sorted_items,10)
+    keyword_dict[i] = kws
+    kw_list = []
+    for k in kws:
+        kw_list.append(k)
+    df_idf.at[i, 'keywords'] = kw_list
+
+df_idf.drop(columns=['text'], inplace=True)
+df_idf.to_csv('updatedNewsHashed.csv', sep=',', index=False)
+print(df_idf.iloc[3])
+'''
+df_u = pd.read_csv('./updatedNewsHashed.csv',sep=',')
+#df_u = df_u[:100]
+'''
+related = {}
+rel = []
+rel_bool = False
+for row in df_u.itertuples():
+    rel_bool = False
+    for k in new_dict:
+        rel = []
+        for kw in row.keywords:
+            #rel = []
+            if kw in new_dict[k]:
+                related[k] = rel.append(row.id)
+                rel_bool = True
+                break
+        if rel_bool == True:
+            break
+
+print(related)
+'''
+#for row in df_u.itertuples():
+ #   print(row)
+
+related = {}
+ids = []
+is_related = False
+#print(new_dict)
+for k in new_dict:
+    ids = []
+    is_related = False
+    for row in df_u.itertuples():
+        for word in literal_eval(row.keywords):
+            if word in new_dict[k]:
+                if (len(ids) < 10):
+                    ids.append(row.id)
+                is_related = True
+                break
+    if is_related == True:
+        related[k] = ids
+#print(related)
+
+for k in related:
+    resp = table.update_item(
+        Key={
+            'id': k 
+        },
+        UpdateExpression="set related_ids = :ids",
+        ExpressionAttributeValues={
+            ':ids': related[k]
+        },
+        ReturnValues="UPDATED_NEW"
+    )
+print("UpdatedItem successful")
+###################################################################################
+
+'''
 for k in new_dict:
     resp = table.update_item(
         Key={
@@ -168,3 +269,4 @@ for k in new_dict:
 
 print("UpdatedItem succeeded:")
 #print(json.dumps(response,index=4,cls=DecimalEncoder))
+'''
