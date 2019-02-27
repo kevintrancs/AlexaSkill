@@ -16,7 +16,10 @@ import {
   UPDATE_PASSWORD,
   UPDATE_PASSWORD_CONFIRM,
   REQUEST_SIGNUP,
-  RECEIVE_SIGNUP
+  RECEIVE_SIGNUP,
+  RECIEVE_BOOKMARKS,
+  REQUEST_BOOKMARKS,
+  ADD_BOOKMARKS
 } from "../actions/actions";
 
 const startState = {
@@ -81,6 +84,12 @@ const reducer = (state = startState, action) => {
         refresh: null,
         id: null
       };
+    case REQUEST_BOOKMARKS:
+      return { ...state, loading: true };
+    case RECIEVE_BOOKMARKS:
+      return { ...state, loading: false, items: action.json };
+    case ADD_BOOKMARKS:
+      return { ...state };
     default:
       return state;
   }

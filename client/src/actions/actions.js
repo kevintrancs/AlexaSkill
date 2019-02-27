@@ -16,6 +16,9 @@ export const UPDATE_PASSWORD = "UPDATE_PASSWORD";
 export const UPDATE_PASSWORD_CONFIRM = "UPDATE_PASSWORD_CONFIRM";
 export const REQUEST_SIGNUP = "REQUEST_SIGNUP";
 export const RECEIVE_SIGNUP = "RECEIVE_SIGNUP";
+export const RECIEVE_BOOKMARKS = "RECIEVE_BOOKMARKS";
+export const REQUEST_BOOKMARKS = "REQUEST_BOOKMARKS";
+export const ADD_BOOKMARKS = "ADD_BOOKMARKS";
 
 const headers = {
   "Access-Control-Allow-Origin": "*",
@@ -23,6 +26,16 @@ const headers = {
   Accept: "application/json"
 };
 
+export const addBookmarks = json => ({
+  type: ADD_BOOKMARKS
+});
+export const requestBookmarks = () => ({
+  type: REQUEST_BOOKMARKS
+});
+export const receiveBookmarks = json => ({
+  type: RECIEVE_BOOKMARKS,
+  json: json
+});
 export const requestSignUp = () => ({
   type: REQUEST_SIGNUP
 });
@@ -149,8 +162,14 @@ export function fetchInitFeed() {
       headers
     )
       .then(results => results.json())
+      .catch(err => {
+        return Promise.reject();
+      })
       .then(json => {
         dispatch(receiveInitFeed(json.found));
+      })
+      .catch(err => {
+        return Promise.reject();
       });
   };
 }
@@ -160,8 +179,14 @@ export function fetchSearchFeed(value) {
     dispatch(requestFeed());
     return fetch("http://localhost:5000/api/search?field=" + value, headers)
       .then(results => results.json())
+      .catch(err => {
+        return Promise.reject();
+      })
       .then(json => {
         dispatch(receiveSearchFeed(json.found));
+      })
+      .catch(err => {
+        return Promise.reject();
       });
   };
 }
@@ -172,8 +197,14 @@ export function fetchTopicFeed(category) {
     return fetch(
       "http://localhost:5000/api/category?field=" + category, headers)
       .then(results => results.json())
+      .catch(err => {
+        return Promise.reject();
+      })
       .then(json => {
         dispatch(receiveTopicFeed(json.found));
+      })
+      .catch(err => {
+        return Promise.reject();
       });
   };
 }
@@ -190,6 +221,32 @@ export function fetchRelatedArticles(id) {
   };
 }
 
+export function fetchBookmarks(access, id, refresh) {
+  return function(dispatch) {
+    dispatch(requestBookmarks());
+
+    var cust_headers = headers;
+    cust_headers["access_token"] = access;
+    cust_headers["id_token"] = id;
+    cust_headers["refresh_token"] = refresh;
+
+    return fetch("http://localhost:5000/user/bookmarks", {
+      method: "GET",
+      headers: cust_headers
+    })
+      .then(results => results.json())
+      .catch(err => {
+        return Promise.reject();
+      })
+      .then(json => {
+        dispatch(receiveBookmarks(json.found));
+      })
+      .catch(err => {
+        return Promise.reject();
+      });
+  };
+}
+
 export function fetchLogin(email, password) {
   return function(dispatch) {
     dispatch(requestLogin());
@@ -200,8 +257,14 @@ export function fetchLogin(email, password) {
       body: JSON.stringify({ email: email, password: password })
     })
       .then(results => results.json())
+      .catch(err => {
+        return Promise.reject();
+      })
       .then(json => {
         dispatch(receiveLogin(json));
+      })
+      .catch(err => {
+        return Promise.reject();
       });
   };
 }
@@ -216,8 +279,38 @@ export function fetchSignUp(email, password) {
       body: JSON.stringify({ email: email, password: password })
     })
       .then(results => results.json())
+      .catch(err => {
+        return Promise.reject();
+      })
       .then(json => {
         dispatch(receiveSignUp(json.status));
+      })
+      .catch(err => {
+        return Promise.reject();
+      });
+  };
+}
+
+export function fetchAddBookmarks(access, id, refresh, article) {
+  return function(dispatch) {
+    var cust_headers = headers;
+    cust_headers["access_token"] = access;
+    cust_headers["id_token"] = id;
+    cust_headers["refresh_token"] = refresh;
+    return fetch("http://localhost:5000/user/updateBookmark", {
+      method: "PUT",
+      headers: cust_headers,
+      body: JSON.stringify({ article_id: article })
+    })
+      .then(results => results.json())
+      .catch(err => {
+        return Promise.reject();
+      })
+      .then(json => {
+        dispatch(addBookmarks(json.status));
+      })
+      .catch(err => {
+        return Promise.reject();
       });
   };
 }

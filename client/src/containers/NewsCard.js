@@ -19,6 +19,7 @@ import {
   fetchRelatedArticles
 } from '../actions/actions'
 
+import { fetchAddBookmarks } from "../actions/actions";
 const drawerWidth = 240;
 
 const styles = theme => ({
@@ -203,9 +204,20 @@ class NewsCard extends Component {
       this.setState({ disliked: !this.state.disliked });
     }
   };
-  favoriteButtonClicked = event => {
+  favoriteButtonClicked(article) {
+    // dis works
+    if (!this.state.favorited) {
+      this.props.newBookmark(
+        this.props.access,
+        this.props.id,
+        this.props.refresh,
+        article
+      );
+      console.log(article);
+    }
+
     this.setState({ favorited: !this.state.favorited });
-  };
+  }
   // Little function to add to a user's history. Replace alert
   // With whatever logic we need (supercedes redirect authority)
   articleClicked (e) {
@@ -223,6 +235,7 @@ class NewsCard extends Component {
     var item = this.props.item;
     var x = item.name;
     var y = item.description;
+    var id = item.id;
     var i = document.createElement("div");
     var j = document.createElement("div");
     i.innerHTML = item.name;
@@ -292,13 +305,13 @@ class NewsCard extends Component {
               {this.state.favorited ? (
                 <StarIcon
                   className={classes.likeIcon}
-                  onClick={this.favoriteButtonClicked}
+                  onClick={this.favoriteButtonClicked.bind(this, id)}
                   style={{ float: "left" }}
                 />
               ) : (
                 <StarBorderOutlinedIcon
                   className={classes.likeIcon}
-                  onClick={this.favoriteButtonClicked}
+                  onClick={this.favoriteButtonClicked.bind(this, id)}
                   style={{ float: "left" }}
                 />
               )}
@@ -315,10 +328,14 @@ class NewsCard extends Component {
   }
 }
 const mapStateToProps = state => ({
-  items: state.items
+  items: state.items,
+  access: state.access,
+  id: state.id,
+  refresh: state.refresh
 });
 const mapDispatchToProps = {
-  related: fetchRelatedArticles
+  related: fetchRelatedArticles,
+  newBookmark: fetchAddBookmarks
 };
 
 export default compose(

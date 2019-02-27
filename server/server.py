@@ -200,13 +200,59 @@ def register_user():
     u.add_base_attributes(email=_email)
     u.register(_email, _password)
     try:
-        user = {'userId': _email, 'history': [" "], 'bookmarks': [" "],
+        user = {'userId': _email, 'history': [], 'bookmarks': [],
                 'ml_one': " ", 'ml_two': " ", 'ml_three': " "}
         users_table.put_item(Item=user)
     except:  # if there is any error
         pass
 
     return Response(json.dumps({"status": "Successful Register"}), status=200, mimetype='application/json')
+
+
+@app.route("/user/updateBookmark", methods=['PUT'])
+def update_history():
+    access = request.headers.get('access_token')
+    refresh = request.headers.get('refresh_token')
+    _id = request.headers.get('id_token')
+    data = request.data
+    dataDict = json.loads(data)
+    article_id = dataDict.get('article_id')
+    valid, email = verify_user(access, refresh, _id)
+    if valid:
+        response = users_table.update_item(
+            Key={'userId': email},
+            UpdateExpression="SET bookmarks = list_append(bookmarks, :i)",
+            ExpressionAttributeValues={
+                ':i': [article_id],
+            },
+            ReturnValues="UPDATED_NEW"
+        )
+
+    return Response(json.dumps({"status": response}), status=200, mimetype='application/json')
+
+
+@app.route("/user/bookmarks", methods=['GET'])
+def get_user_bookmarks():
+    access = request.headers.get('access_token')
+    refresh = request.headers.get('refresh_token')
+    _id = request.headers.get('id_token')
+    valid, email = verify_user(access, refresh, _id)
+    bookmarks = None
+    bookmarks_feed = []
+    # Get user bookmark list
+    # search for those ids in
+    if valid:
+        response = users_table.get_item(
+            Key={'userId': email}
+        )
+        bookmarks = response['Item']['bookmarks']
+        for i in bookmarks:
+            response = table.get_item(
+                Key={'id': i}
+            )
+            bookmarks_feed.append(response['Item'])
+        clean(bookmarks_feed)
+    return Response(json.dumps({"found": bookmarks_feed}), status=200, mimetype='application/json')
 
 
 if __name__ == "__main__":

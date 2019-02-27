@@ -2,12 +2,7 @@ import { compose } from "redux";
 import classNames from "classnames";
 import { withStyles } from "@material-ui/core/styles";
 import List from "@material-ui/core/List";
-import Typography from "@material-ui/core/Typography";
-import { fade } from "@material-ui/core/styles/colorManipulator";
 import ListItem from "@material-ui/core/ListItem";
-import Card from "@material-ui/core/Card";
-import CardContent from "@material-ui/core/CardContent";
-import CardMedia from "@material-ui/core/CardMedia";
 import React, { Component } from "react";
 import { connect } from "react-redux";
 import NewsCard from "./containers/NewsCard";
@@ -77,6 +72,7 @@ const styles = theme => ({
 class FeedList extends Component {
   render() {
     const { classes, theme } = this.props;
+    console.log(this.props.items);
     return (
       <div>
         <List className={classNames(classes.layout)}>
