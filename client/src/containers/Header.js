@@ -48,8 +48,11 @@ import {
   loggedOutWorker,
   loggingOutWorker,
   openList,
-  closeList
+  closeList,
+  fetchRelatedArticles,
 } from "../actions/actions";
+import { article_id } from "./NewsCard";
+
 const drawerWidth = 240;
 
 const styles = theme => ({
@@ -227,6 +230,16 @@ class Header extends Component {
       this.props.getTopic(category);
     }
   }
+
+  handleMlChange(id) {
+    //this.setState({ selectedIndex: index });
+    //let aid = this.props.storeArticleId
+    console.log("article id ", article_id);
+    console.log('id: ', id)
+    this.props.getRelated(article_id);
+    console.log("clicked ML tab");
+  }
+
   handleDrawerOpen = () => {
     this.props.o();
     console.log("open triggered");
@@ -406,7 +419,7 @@ class Header extends Component {
             </ListItem>
             <Collapse in={open_list} timeout="auto" unmountOnExit>
               <List component="div" disablePadding>
-                <ListItem button className={classes.nested}>
+                <ListItem button className={classes.nested} key={"ML1"} onClick={this.handleMlChange.bind(this, article_id)}>
                   <ListItemIcon>
                     <StarBorder />
                   </ListItemIcon>
@@ -447,6 +460,7 @@ const mapDispatchToProps = {
   getInit: fetchInitFeed,
   getSearch: fetchSearchFeed,
   getTopic: fetchTopicFeed,
+  getRelated: fetchRelatedArticles,
   c: closeDrawer,
   o: openDrawer,
   loggingOut: loggingOutWorker,

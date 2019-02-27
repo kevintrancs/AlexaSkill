@@ -15,6 +15,9 @@ import ThumbDownOutlinedIcon from "@material-ui/icons/ThumbDownOutlined";
 import ThumbDownIcon from "@material-ui/icons/ThumbDown";
 import StarBorderOutlinedIcon from "@material-ui/icons/StarBorderOutlined";
 import StarIcon from "@material-ui/icons/Star";
+import {
+  fetchRelatedArticles
+} from '../actions/actions'
 
 const drawerWidth = 240;
 
@@ -170,6 +173,8 @@ const styles = theme => ({
   }
 });
 
+export var article_id = '';
+
 class NewsCard extends Component {
   constructor(props) {
     super(props);
@@ -203,8 +208,12 @@ class NewsCard extends Component {
   };
   // Little function to add to a user's history. Replace alert
   // With whatever logic we need (supercedes redirect authority)
-  articleClicked = e => {
+  articleClicked (e) {
     console.log("Link Clicked");
+    //console.log(e)
+    //this.props.store_id(e);
+    article_id = e;
+    console.log(article_id);
   };
 
   // Using props to pass on article information to each card
@@ -225,7 +234,7 @@ class NewsCard extends Component {
         <div className={classes.details}>
           <CardContent className={classes.content}>
             <Typography component="h5" variant="h6">
-              <a href={item.url} target="_blank" onClick={this.articleClicked}>
+              <a href={item.url} target="_blank" onClick={this.articleClicked.bind(this, item.id)}>
                 {x}
               </a>
             </Typography>
@@ -308,7 +317,9 @@ class NewsCard extends Component {
 const mapStateToProps = state => ({
   items: state.items
 });
-const mapDispatchToProps = {};
+const mapDispatchToProps = {
+  related: fetchRelatedArticles
+};
 
 export default compose(
   connect(

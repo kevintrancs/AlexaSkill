@@ -5,7 +5,7 @@ sys.path.append("..")
 import boto3
 from boto3.dynamodb.conditions import Key, Attr
 from flask_cors import CORS
-from flask.logging import default_handler
+#from flask.logging import default_handler
 from flask import request
 from flask import json
 from bs4 import BeautifulSoup
@@ -17,6 +17,7 @@ import os
 from data.news import headers, pull
 from warrant import Cognito
 from jose import jwt, jwk
+from ast import literal_eval
 app = Flask(__name__)
 CORS(app)
 
@@ -70,6 +71,30 @@ def fetch_category():
     else:
         return Response(json.dumps({'found': []}), status=204, mimetype='application/json')
 
+@app.route("/api/ml", methods=['GET'])
+def fetch_related():
+    id = request.args.get('field')
+    #id = '0419d45c92fb9a205d63a7c5177cea3bce8e89f9244ae0d61eab143af0c294ad'
+    if id:
+        response = table.get_item(Key={'id': id})
+        print(response)
+    
+    else:
+        return Response(json.dumps({'found': []}), status=204, mimetype='application/json')
+    
+    if response['Item']['related_ids']:
+        related_ids = response['Item']['related_ids']
+        #print(related_ids)
+        article_data = []
+        for rel in related_ids:
+            resp = table.get_item(Key={'id': rel})
+            if resp['Item']:
+                article_data.append(resp['Item'])
+        #print(article_data[:3])
+        #print(len(article_data))
+        return Response(json.dumps({'found': article_data}), status=200, mimetype='application/json')
+    else:
+       return Response(json.dumps({'found': []}), status=204, mimetype='application/json')
 
 @app.route("/api/inital", methods=['GET'])
 def fetch_initial():
@@ -185,6 +210,8 @@ def register_user():
 
 
 if __name__ == "__main__":
+    #fetch_related()
     # 0.0.0.0 cause public and shit
     app.run(host='0.0.0.0', debug=True)
+    
     # get_syset_info(get_sysets_id('elon musk')

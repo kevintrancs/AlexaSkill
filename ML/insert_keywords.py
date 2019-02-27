@@ -239,6 +239,8 @@ for k in new_dict:
         related[k] = ids
 #print(related)
 
+
+
 for k in related:
     resp = table.update_item(
         Key={
@@ -265,8 +267,7 @@ for k in new_dict:
         },
         ReturnValues="UPDATED_NEW"
     )
-
+'''
 
 print("UpdatedItem succeeded:")
 #print(json.dumps(response,index=4,cls=DecimalEncoder))
-'''

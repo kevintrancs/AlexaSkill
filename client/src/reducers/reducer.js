@@ -3,6 +3,7 @@ import {
   RECEIVE_INIT_FEED,
   RECEIVE_SEARCH_FEED,
   RECEIVE_TOPIC_FEED,
+  RECEIVE_ML_FEED,
   OPEN_SIDE,
   CLOSE_SIDE,
   OPEN_NEST,
@@ -43,6 +44,8 @@ const reducer = (state = startState, action) => {
     case RECEIVE_SEARCH_FEED:
       return { ...state, items: action.json, loading: false };
     case RECEIVE_TOPIC_FEED:
+      return { ...state, items: action.json, loading: false };
+    case RECEIVE_ML_FEED:
       return { ...state, items: action.json, loading: false };
     case OPEN_SIDE:
       return { ...state, open: true };

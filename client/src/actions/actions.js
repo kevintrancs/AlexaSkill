@@ -2,6 +2,7 @@ export const REQUEST_FEED = "REQUEST_FEED";
 export const RECEIVE_INIT_FEED = "RECEIVE_INIT_FEED";
 export const RECEIVE_SEARCH_FEED = "RECEIVE_SEARCH_FEED";
 export const RECEIVE_TOPIC_FEED = "RECEIVE_TOPIC_FEED";
+export const RECEIVE_ML_FEED = "RECEIVE_ML_FEED";
 export const CLOSE_SIDE = "CLOSE_SIDE";
 export const OPEN_SIDE = "OPEN_SIDE";
 export const OPEN_NEST = "OPEN_NEST";
@@ -49,6 +50,10 @@ export const receiveSearchFeed = json => ({
 });
 export const receiveTopicFeed = json => ({
   type: RECEIVE_TOPIC_FEED,
+  json: json
+});
+export const receiveMlFeed = json => ({
+  type: RECEIVE_ML_FEED,
   json: json
 });
 export const openNest = () => ({
@@ -165,12 +170,22 @@ export function fetchTopicFeed(category) {
   return function(dispatch) {
     dispatch(requestFeed());
     return fetch(
-      "http://localhost:5000/api/category?field=" + category,
-      headers
-    )
+      "http://localhost:5000/api/category?field=" + category, headers)
       .then(results => results.json())
       .then(json => {
         dispatch(receiveTopicFeed(json.found));
+      });
+  };
+}
+
+export function fetchRelatedArticles(id) {
+  return function(dispatch) {
+    dispatch(requestFeed());
+    return fetch(
+      "http://localhost:5000/api/ml?field=" + id, headers)
+      .then(results => results.json())
+      .then(json => {
+        dispatch(receiveMlFeed(json.found));
       });
   };
 }
