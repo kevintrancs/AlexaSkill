@@ -55,6 +55,13 @@ import {
   fetchBookmarks
 } from "../actions/actions";
 import { article_id } from "./NewsCard";
+import ReactGA from 'react-ga';
+
+ReactGA.initialize('UA-135499199-1', {
+  gaOptions: {
+    name: 'HeaderTracker'
+  }
+});
 
 const drawerWidth = 240;
 
@@ -221,6 +228,11 @@ class Header extends Component {
       var value = event.target.value;
       if (value !== "") {
         this.props.getSearch(value);
+        ReactGA.event({
+          category: 'User',
+          action: 'Search',
+          label: value
+        });
       }
     }
   }
@@ -229,16 +241,32 @@ class Header extends Component {
     this.setState({ selectedIndex: index });
     if (category === "Trending" || category === "Breaking") {
       this.props.getInit();
+      ReactGA.event({
+        category: 'Category',
+        action: 'Trending/Breaking',
+        value: index
+      });
     } else if (category === "Bookmarks") {
-      if (this.props.access != "null" || this.props.access != null)
+      if (this.props.access !== "null" || this.props.access != null) {
         this.props.getBookmarks(
           this.props.access,
           this.props.id,
           this.props.refresh
         );
+        ReactGA.event({
+          category: 'Bookmarks',
+          action: 'Go to bookmarks',
+        });
+      }
       else this.props.getInit();
     } else {
       this.props.getTopic(category);
+      ReactGA.event({
+        category: 'Category',
+        action: 'Change category',
+        label: category,
+        value: index
+      });
     }
     // temp fix
   }
@@ -346,7 +374,7 @@ class Header extends Component {
                 " "
               )}
             </div>
-            {this.props.access == null || this.props.access == "null" ? (
+            {this.props.access === null || this.props.access === "null" ? (
               <div className="LoginButtons">
                 <Button
                   className={"pull-right"}

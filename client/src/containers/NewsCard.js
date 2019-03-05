@@ -15,12 +15,19 @@ import ThumbDownOutlinedIcon from "@material-ui/icons/ThumbDownOutlined";
 import ThumbDownIcon from "@material-ui/icons/ThumbDown";
 import StarBorderOutlinedIcon from "@material-ui/icons/StarBorderOutlined";
 import StarIcon from "@material-ui/icons/Star";
+import ReactGA from 'react-ga';
 import {
   fetchRelatedArticles
 } from '../actions/actions'
 
 import { fetchAddBookmarks } from "../actions/actions";
 const drawerWidth = 240;
+
+ReactGA.initialize('UA-135499199-1', {
+  gaOptions: {
+    name: 'NewsCardTracker'
+  }
+});
 
 const styles = theme => ({
   root: {
@@ -187,21 +194,41 @@ class NewsCard extends Component {
     };
   }
 
-  likeButtonClicked = event => {
+  likeButtonClicked(article) {
     if (!this.state.disliked) {
       this.setState({ liked: !this.state.liked });
+      ReactGA.event({
+        category: 'Like button',
+        action: 'Unliked article',
+        value: 0
+      });
     } else {
       this.setState({ liked: true, disliked: false });
+      ReactGA.event({
+        category: 'Like button',
+        action: 'Liked article',
+        value: 1
+      });
     }
   };
-  dislikeButtonClicked = event => {
+  dislikeButtonClicked(article) {
     if (this.state.liked) {
       // If the article is liked, flip both
       this.setState({ disliked: true, liked: false });
+      ReactGA.event({
+        category: 'Dislike button',
+        action: 'Dislike article',
+        value: 1
+      });
     }
     // Otherwise, just flip disliked
     else {
       this.setState({ disliked: !this.state.disliked });
+      ReactGA.event({
+        category: 'Dislike button',
+        action: 'Undislike article',
+        value: 0
+      });
     }
   };
   favoriteButtonClicked(article) {
@@ -214,6 +241,12 @@ class NewsCard extends Component {
         article
       );
       console.log(article);
+      ReactGA.event({
+        category: 'Bookmarks',
+        action: 'Favorited article',
+        label: article,
+        value: 1
+      });
     }
 
     this.setState({ favorited: !this.state.favorited });
@@ -226,6 +259,11 @@ class NewsCard extends Component {
     //this.props.store_id(e);
     article_id = e;
     console.log(article_id);
+    ReactGA.event({
+      category: 'Link',
+      action: 'click',
+      label: e
+    });
   };
 
   // Using props to pass on article information to each card
@@ -279,26 +317,26 @@ class NewsCard extends Component {
               {this.state.liked ? (
                 <ThumbUpIcon
                   className={classes.likeIcon}
-                  onClick={this.likeButtonClicked}
+                  onClick={this.likeButtonClicked.bind(this, id)}
                   style={{ float: "left" }}
                 />
               ) : (
                 <ThumbUpOutlinedIcon
                   className={classes.likeIcon}
-                  onClick={this.likeButtonClicked}
+                  onClick={this.likeButtonClicked.bind(this, id)}
                   style={{ float: "left" }}
                 />
               )}
               {this.state.disliked ? (
                 <ThumbDownIcon
                   className={classes.likeIcon}
-                  onClick={this.dislikeButtonClicked}
+                  onClick={this.dislikeButtonClicked.bind(this, id)}
                   style={{ float: "left" }}
                 />
               ) : (
                 <ThumbDownOutlinedIcon
                   className={classes.likeIcon}
-                  onClick={this.dislikeButtonClicked}
+                  onClick={this.dislikeButtonClicked.bind(this, id)}
                   style={{ float: "left" }}
                 />
               )}
