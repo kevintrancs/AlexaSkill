@@ -25,7 +25,7 @@ with open('../server/constants.json') as f:
     CONSTANTS = json.load(f)
 
 db = boto3.resource('dynamodb', aws_access_key_id=CONSTANTS['aws_access_key_id'],
-    aws_secret_access_key=CONSTANTS['aws_secret_key_id'])
+    aws_secret_access_key=CONSTANTS['aws_secret_key_id'], region_name=CONSTANTS['aws_region_name'])
 table = db.Table('NewsHashed')
 users_table = db.Table('userData')
 
