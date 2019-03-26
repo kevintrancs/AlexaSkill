@@ -14,6 +14,8 @@ import requests
 import json
 import operator
 import os
+import datetime
+import uuid
 from data.news import headers, pull
 from warrant import Cognito
 from jose import jwt, jwk
@@ -24,10 +26,12 @@ CORS(app)
 with open('../server/constants.json') as f:
     CONSTANTS = json.load(f)
 
+boto3.setup_default_session(profile_name="clevernews")
 db = boto3.resource('dynamodb', aws_access_key_id=CONSTANTS['aws_access_key_id'],
     aws_secret_access_key=CONSTANTS['aws_secret_key_id'], region_name=CONSTANTS['aws_region_name'])
 table = db.Table('NewsHashed')
 users_table = db.Table('userData')
+events_table = db.Table('events')
 
 def get_syset_info(ids):
     terms = set()
@@ -209,6 +213,28 @@ def register_user():
     return Response(json.dumps({"status": "Successful Register"}), status=200, mimetype='application/json')
 
 
+@app.route("/user/addEvent", methods=['PUT'])
+def add_user_event():
+    access = request.headers.get('access_token')
+    refresh = request.headers.get('refresh_token')
+    _id = request.headers.get('id_token')
+    data = request.data
+    dataDict = json.loads(data)
+    event = dataDict.get('event_dict')
+    print(event)
+    #valid, email = verify_user(access, refresh, _id)
+    _id = 'None'
+    try:
+        event = {'id': str(uuid.uuid4()), 'time': str(datetime.datetime.now()), 'user_id': str(_id), 
+                'article': str(event['article']), 'category': str(event['category']), 'favorited': str(event['favorited']),
+                'liked': str(event['liked']), 'disliked': str(event['disliked']), 'clicked': str(event['clicked'])}
+        response = events_table.put_item(Item=event)
+    except:
+        print("Error putting data into events table")
+
+    return Response(json.dumps({"status": "Successful event store"}), status=200, mimetype='application/json')
+
+
 @app.route("/user/updateBookmark", methods=['PUT'])
 def update_history():
     access = request.headers.get('access_token')
@@ -229,7 +255,6 @@ def update_history():
         )
 
     return Response(json.dumps({"status": response}), status=200, mimetype='application/json')
-
 
 @app.route("/user/bookmarks", methods=['GET'])
 def get_user_bookmarks():

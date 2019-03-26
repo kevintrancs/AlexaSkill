@@ -17,7 +17,8 @@ import StarBorderOutlinedIcon from "@material-ui/icons/StarBorderOutlined";
 import StarIcon from "@material-ui/icons/Star";
 import ReactGA from 'react-ga';
 import {
-  fetchRelatedArticles
+  fetchRelatedArticles,
+  fetchStoreEvents
 } from '../actions/actions'
 
 import { fetchAddBookmarks } from "../actions/actions";
@@ -194,7 +195,7 @@ class NewsCard extends Component {
     };
   }
 
-  likeButtonClicked(article) {
+  likeButtonClicked(article, cat) {
     if (!this.state.disliked) {
       this.setState({ liked: !this.state.liked });
       ReactGA.event({
@@ -204,6 +205,17 @@ class NewsCard extends Component {
       });
     } else {
       this.setState({ liked: true, disliked: false });
+      this.props.event(
+        this.props.access,
+        this.props.id,
+        this.props.refresh,
+        {article: article,
+         category: cat,
+         favorited: 0,
+         liked: 1,
+         disliked: 0,
+         clicked: 0}
+      )
       ReactGA.event({
         category: 'Like button',
         action: 'Liked article',
@@ -211,10 +223,21 @@ class NewsCard extends Component {
       });
     }
   };
-  dislikeButtonClicked(article) {
+  dislikeButtonClicked(article, cat) {
     if (this.state.liked) {
       // If the article is liked, flip both
       this.setState({ disliked: true, liked: false });
+      this.props.event(
+        this.props.access,
+        this.props.id,
+        this.props.refresh,
+        {article: article,
+         category: cat, 
+         favorited: 0,
+         liked: 0,
+         disliked: 1,
+         clicked: 0}
+      )
       ReactGA.event({
         category: 'Dislike button',
         action: 'Dislike article',
@@ -231,7 +254,7 @@ class NewsCard extends Component {
       });
     }
   };
-  favoriteButtonClicked(article) {
+  favoriteButtonClicked(article, cat) {
     // dis works
     if (!this.state.favorited) {
       this.props.newBookmark(
@@ -240,6 +263,17 @@ class NewsCard extends Component {
         this.props.refresh,
         article
       );
+      this.props.event(
+        this.props.access,
+        this.props.id,
+        this.props.refresh,
+        {article: article,
+         favorited: 1,
+         category: cat,
+         liked: 0,
+         disliked: 0,
+         clicked: 0}
+      )
       console.log(article);
       ReactGA.event({
         category: 'Bookmarks',
@@ -253,11 +287,22 @@ class NewsCard extends Component {
   }
   // Little function to add to a user's history. Replace alert
   // With whatever logic we need (supercedes redirect authority)
-  articleClicked (e) {
+  articleClicked (e, cat) {
     console.log("Link Clicked");
     //console.log(e)
     //this.props.store_id(e);
     article_id = e;
+    this.props.event(
+      this.props.access,
+      this.props.id,
+      this.props.refresh,
+      {article: article_id,
+       category: cat,
+       favorited: 0,
+       liked: 0,
+       disliked: 0,
+       clicked: 1}
+    )
     console.log(article_id);
     ReactGA.event({
       category: 'Link',
@@ -285,7 +330,7 @@ class NewsCard extends Component {
         <div className={classes.details}>
           <CardContent className={classes.content}>
             <Typography component="h5" variant="h6">
-              <a href={item.url} target="_blank" onClick={this.articleClicked.bind(this, item.id)}>
+              <a href={item.url} target="_blank" onClick={this.articleClicked.bind(this, item.id, item.category)}>
                 {x}
               </a>
             </Typography>
@@ -317,39 +362,39 @@ class NewsCard extends Component {
               {this.state.liked ? (
                 <ThumbUpIcon
                   className={classes.likeIcon}
-                  onClick={this.likeButtonClicked.bind(this, id)}
+                  onClick={this.likeButtonClicked.bind(this, id, item.category)}
                   style={{ float: "left" }}
                 />
               ) : (
                 <ThumbUpOutlinedIcon
                   className={classes.likeIcon}
-                  onClick={this.likeButtonClicked.bind(this, id)}
+                  onClick={this.likeButtonClicked.bind(this, id, item.category)}
                   style={{ float: "left" }}
                 />
               )}
               {this.state.disliked ? (
                 <ThumbDownIcon
                   className={classes.likeIcon}
-                  onClick={this.dislikeButtonClicked.bind(this, id)}
+                  onClick={this.dislikeButtonClicked.bind(this, id, item.category)}
                   style={{ float: "left" }}
                 />
               ) : (
                 <ThumbDownOutlinedIcon
                   className={classes.likeIcon}
-                  onClick={this.dislikeButtonClicked.bind(this, id)}
+                  onClick={this.dislikeButtonClicked.bind(this, id, item.category)}
                   style={{ float: "left" }}
                 />
               )}
               {this.state.favorited ? (
                 <StarIcon
                   className={classes.likeIcon}
-                  onClick={this.favoriteButtonClicked.bind(this, id)}
+                  onClick={this.favoriteButtonClicked.bind(this, id, item.category)}
                   style={{ float: "left" }}
                 />
               ) : (
                 <StarBorderOutlinedIcon
                   className={classes.likeIcon}
-                  onClick={this.favoriteButtonClicked.bind(this, id)}
+                  onClick={this.favoriteButtonClicked.bind(this, id, item.category)}
                   style={{ float: "left" }}
                 />
               )}
@@ -373,7 +418,8 @@ const mapStateToProps = state => ({
 });
 const mapDispatchToProps = {
   related: fetchRelatedArticles,
-  newBookmark: fetchAddBookmarks
+  newBookmark: fetchAddBookmarks,
+  event: fetchStoreEvents
 };
 
 export default compose(

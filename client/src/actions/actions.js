@@ -19,6 +19,7 @@ export const RECEIVE_SIGNUP = "RECEIVE_SIGNUP";
 export const RECIEVE_BOOKMARKS = "RECIEVE_BOOKMARKS";
 export const REQUEST_BOOKMARKS = "REQUEST_BOOKMARKS";
 export const ADD_BOOKMARKS = "ADD_BOOKMARKS";
+export const STORE_EVENT = "STORE_EVENT";
 
 const headers = {
   "Access-Control-Allow-Origin": "*",
@@ -26,6 +27,9 @@ const headers = {
   Accept: "application/json"
 };
 
+export const storeEvent = json => ({
+  type: STORE_EVENT
+});
 export const addBookmarks = json => ({
   type: ADD_BOOKMARKS
 });
@@ -284,6 +288,30 @@ export function fetchSignUp(email, password) {
       })
       .then(json => {
         dispatch(receiveSignUp(json.status));
+      })
+      .catch(err => {
+        return Promise.reject();
+      });
+  };
+}
+
+export function fetchStoreEvents(access, id, refresh, dict) {
+  return function(dispatch) {
+    var cust_headers = headers;
+    cust_headers["access_token"] = access;
+    cust_headers["id_tokent"] = id;
+    cust_headers["refresh_token"] = refresh;
+    return fetch("http://localhost:5000/user/addEvent", {
+      method: "PUT",
+      headers: cust_headers,
+      body: JSON.stringify({ event_dict: dict })
+    })
+      .then(results => results.json())
+      .catch(err => {
+        return Promise.reject();
+      })
+      .then(json => {
+        dispatch(storeEvent(json.status));
       })
       .catch(err => {
         return Promise.reject();
