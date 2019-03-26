@@ -227,21 +227,9 @@ class NewsCard extends Component {
           article
         );
       }
-      this.setState({ liked: !this.state.liked });
-      ReactGA.event({
-        category: "Like button",
-        action: "Unliked article",
-        value: 0
-      });
     } else {
       this.setState({ liked: true, disliked: false });
       this.props.removeDislike(
-        this.props.access,
-        this.props.id,
-        this.props.refresh,
-        article
-      );
-      this.props.newLike(
         this.props.access,
         this.props.id,
         this.props.refresh,
@@ -310,14 +298,18 @@ class NewsCard extends Component {
         this.props.refresh,
         article
       );
-      this.props.event(this.props.access, this.props.id, this.props.refresh, {
-        article: article,
-        favorited: 1,
-        category: cat,
-        liked: 0,
-        disliked: 0,
-        clicked: 0
-      });
+      this.props.event(
+        this.props.access,
+        this.props.id,
+        this.props.refresh,
+        {article: article,
+         favorited: 1,
+         category: cat,
+         liked: 0,
+         disliked: 0,
+         clicked: 0,
+         searchVal: ''}
+      )
       console.log(article);
       ReactGA.event({
         category: "Bookmarks",
@@ -347,8 +339,14 @@ class NewsCard extends Component {
       this.props.access,
       this.props.id,
       this.props.refresh,
-      article_id
-    );
+      {article: article_id,
+       category: cat,
+       favorited: 0,
+       liked: 0,
+       disliked: 0,
+       clicked: 1,
+       searchVal: 0}
+    )
     console.log(article_id);
     ReactGA.event({
       category: "Link",

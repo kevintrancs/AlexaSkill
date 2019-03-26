@@ -45,6 +45,11 @@ import {
   fetchInitFeed,
   fetchSearchFeed,
   fetchTopicFeed,
+  fetchDislikes,
+  fetchLikes,
+  fetchBookmarksFeed,
+  fetchHistory,
+  fetchMLTwoFeed,
   closeDrawer,
   openDrawer,
   loggedOutWorker,
@@ -53,11 +58,7 @@ import {
   closeList,
   fetchRelatedArticles,
   fetchBookmarks,
-  fetchLikes,
-  fetchDislikes,
-  fetchBookmarksFeed,
-  fetchHistory,
-  fetchMLTwoFeed
+  fetchStoreEvents
 } from "../actions/actions";
 import { article_id } from "./NewsCard";
 import ReactGA from "react-ga";
@@ -244,6 +245,18 @@ class Header extends Component {
       var value = event.target.value;
       if (value !== "") {
         this.props.getSearch(value);
+        this.props.event(
+          this.props.access,
+          this.props.id,
+          this.props.refresh,
+          {article: '',
+          category: '',
+          favorited: 0,
+          liked: 1,
+          disliked: 0,
+          clicked: 0,
+          searchVal: value}
+        )
         ReactGA.event({
           category: "User",
           action: "Search",
@@ -316,6 +329,18 @@ class Header extends Component {
       }
     } else {
       this.props.getTopic(category);
+      this.props.event(
+        this.props.access,
+        this.props.id,
+        this.props.refresh,
+        {article: '',
+         category: category,
+         favorited: 0,
+         liked: 0,
+         disliked: 0,
+         clicked: 0,
+         searchVal: ''}
+      )
       ReactGA.event({
         category: "Category",
         action: "Change category",
@@ -596,7 +621,8 @@ const mapDispatchToProps = {
   getLikes: fetchLikes,
   getDislikes: fetchDislikes,
   getBookmarksFeed: fetchBookmarksFeed,
-  getHistory: fetchHistory
+  getHistory: fetchHistory,
+  event: fetchStoreEvents
 };
 
 export default compose(
