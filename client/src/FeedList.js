@@ -69,9 +69,14 @@ const styles = theme => ({
     paddingLeft: theme.spacing.unit
   }
 });
+
 class FeedList extends Component {
+  constructor(props){
+    super(props);
+  }
+
   render() {
-    const { classes, theme } = this.props;
+    const { classes, theme, } = this.props;
     console.log(this.props.items);
     return (
       <div>
@@ -80,17 +85,25 @@ class FeedList extends Component {
             // Dumb way to do it, but ay works will fix sometime eventually
             return (
               <ListItem key={item.name}>
-                <NewsCard item={item} />
+                {console.log(item.id)}
+                <NewsCard 
+                    item={item}
+                    bookmarked={this.props.bookmarks.some(other => item.id === other.id)}
+                    liked={this.props.likes.some(other => other.id === item.id)}
+                    disliked={this.props.dislikes.some(other=>other.id===item.id)}/>
               </ListItem>
             );
-          })}
+          }, this)}
         </List>
       </div>
     );
   }
 }
 const mapStateToProps = state => ({
-  items: state.items
+  items: state.items,
+  bookmarks: state.bookmarks,
+  likes: state.likes,
+  dislikes: state.dislikes
 });
 const mapDispatchToProps = {};
 

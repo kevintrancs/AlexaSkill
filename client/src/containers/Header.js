@@ -51,7 +51,16 @@ import {
   loggingOutWorker,
   openList,
   closeList,
+<<<<<<< Updated upstream
   fetchBookmarks
+=======
+  fetchRelatedArticles,
+  fetchBookmarks,
+  fetchLikes,
+  fetchDislikes,
+  fetchBookmarksFeed,
+  fetchHistory
+>>>>>>> Stashed changes
 } from "../actions/actions";
 const drawerWidth = 240;
 
@@ -215,6 +224,21 @@ class Header extends Component {
 
   getSearch(event) {
     if (event.key === "Enter") {
+      this.props.getBookmarks(
+        this.props.access,
+        this.props.id,
+        this.props.refresh
+      );
+      this.props.getLikes(
+        this.props.access,
+        this.props.id,
+        this.props.refresh
+      );
+      this.props.getDislikes(
+        this.props.access,
+        this.props.id,
+        this.props.refresh
+      );
       var value = event.target.value;
       if (value !== "") {
         this.props.getSearch(value);
@@ -223,6 +247,21 @@ class Header extends Component {
   }
 
   handleCategoryChange(category, index) {
+    this.props.getBookmarks(
+      this.props.access,
+      this.props.id,
+      this.props.refresh
+    );
+    this.props.getLikes(
+      this.props.access,
+      this.props.id,
+      this.props.refresh
+    );
+    this.props.getDislikes(
+      this.props.access,
+      this.props.id,
+      this.props.refresh
+    );
     this.setState({ selectedIndex: index });
     if (category === "Trending" || category === "Breaking") {
       this.props.getInit();
@@ -233,8 +272,34 @@ class Header extends Component {
           this.props.id,
           this.props.refresh
         );
+<<<<<<< Updated upstream
+=======
+        this.props.getBookmarksFeed(
+          this.props.access,
+          this.props.id,
+          this.props.refresh
+        );
+        console.log(this.props.bookmarks);
+        ReactGA.event({
+          category: 'Bookmarks',
+          action: 'Go to bookmarks',
+        });
+      }
+>>>>>>> Stashed changes
       else this.props.getInit();
-    } else {
+    } 
+    else if (category === "History") {
+      if (this.props.access !== "null" || this.props.access !== null) {
+        this.props.getHistory(
+          this.props.access,
+          this.props.id,
+          this.props.refresh
+        );
+      } else {
+        this.props.getInit();
+      }
+    }
+    else {
       this.props.getTopic(category);
     }
     // temp fix
@@ -459,7 +524,8 @@ const mapStateToProps = state => ({
   open_list: state.open_list,
   access: state.access,
   id: state.id,
-  refresh: state.refresh
+  refresh: state.refresh,
+  bookmarks: state.bookmarks
 });
 
 const mapDispatchToProps = {
@@ -472,7 +538,11 @@ const mapDispatchToProps = {
   loggedOut: loggedOutWorker,
   cl: closeList,
   ol: openList,
-  getBookmarks: fetchBookmarks
+  getBookmarks: fetchBookmarks,
+  getLikes: fetchLikes,
+  getDislikes: fetchDislikes,
+  getBookmarksFeed: fetchBookmarksFeed,
+  getHistory: fetchHistory
 };
 
 export default compose(

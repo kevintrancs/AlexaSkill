@@ -15,6 +15,14 @@ import ThumbDownOutlinedIcon from "@material-ui/icons/ThumbDownOutlined";
 import ThumbDownIcon from "@material-ui/icons/ThumbDown";
 import StarBorderOutlinedIcon from "@material-ui/icons/StarBorderOutlined";
 import StarIcon from "@material-ui/icons/Star";
+<<<<<<< Updated upstream
+=======
+import ReactGA from 'react-ga';
+import {
+  fetchRelatedArticles, fetchAddHistory, fetchAddLikes, fetchAddDislikes, fetchRemoveBookmark, fetchRemoveLike, fetchRemoveDislike
+} from '../actions/actions'
+
+>>>>>>> Stashed changes
 import { fetchAddBookmarks } from "../actions/actions";
 const drawerWidth = 240;
 
@@ -174,27 +182,108 @@ class NewsCard extends Component {
   constructor(props) {
     super(props);
     // Tracking state of important clicked bools
+    console.log(this.props.bookmarked)
     this.state = {
-      liked: false,
-      disliked: false,
-      favorited: false
+      liked: this.props.liked,
+      disliked: this.props.disliked,
+      favorited: this.props.bookmarked,
     };
   }
 
-  likeButtonClicked = event => {
+  componentDidMount(){
+    const item = this.props.item;
+    // console.log(this.props.bookmarks.some(other => item.id === other.id));
+    // Tracking state of important clicked bools
+    this.setState({
+      favorited: this.props.bookmarked
+    });
+    this.forceUpdate();
+  }
+
+  likeButtonClicked(article) {
     if (!this.state.disliked) {
+      if(!this.state.liked){
+        this.props.newLike(
+          this.props.access,
+          this.props.id,
+          this.props.refresh,
+          article
+        );
+      } else {
+        this.props.removeLike(
+          this.props.access,
+          this.props.id,
+          this.props.refresh,
+          article
+        );
+      }
       this.setState({ liked: !this.state.liked });
+      ReactGA.event({
+        category: 'Like button',
+        action: 'Unliked article',
+        value: 0
+      });
+
     } else {
       this.setState({ liked: true, disliked: false });
+      this.props.removeDislike(
+        this.props.access,
+        this.props.id,
+        this.props.refresh,
+        article
+      );
+      this.props.newLike(
+        this.props.access,
+        this.props.id,
+        this.props.refresh,
+        article
+      )
+      ReactGA.event({
+        category: 'Like button',
+        action: 'Liked article',
+        value: 1
+      });
     }
   };
-  dislikeButtonClicked = event => {
-    if (this.state.liked) {
+  dislikeButtonClicked(article) {
+    if (this.state.liked && !this.state.disliked) {
       // If the article is liked, flip both
       this.setState({ disliked: true, liked: false });
+      ReactGA.event({
+        category: 'Dislike button',
+        action: 'Dislike article',
+        value: 1
+      });
+      this.props.removeLike(
+        this.props.access,
+        this.props.id,
+        this.props.refresh,
+        article
+      );
+      this.props.newDislike(
+        this.props.access,
+        this.props.id,
+        this.props.refresh,
+        article
+      );
     }
     // Otherwise, just flip disliked
     else {
+      if(!this.state.disliked){
+        this.props.newDislike(
+          this.props.access,
+          this.props.id,
+          this.props.refresh,
+          article
+        );
+      } else {
+        this.props.removeDislike(
+          this.props.access,
+          this.props.id,
+          this.props.refresh,
+          article
+        );
+      }
       this.setState({ disliked: !this.state.disliked });
     }
   };
@@ -208,6 +297,19 @@ class NewsCard extends Component {
         article
       );
       console.log(article);
+      ReactGA.event({
+        category: 'Bookmarks',
+        action: 'Favorited article',
+        label: article,
+        value: 1
+      });
+    } else {
+      this.props.removeBookmark(
+        this.props.access,
+        this.props.id,
+        this.props.refresh,
+        article
+      );
     }
 
     this.setState({ favorited: !this.state.favorited });
@@ -216,6 +318,21 @@ class NewsCard extends Component {
   // With whatever logic we need (supercedes redirect authority)
   articleClicked = e => {
     console.log("Link Clicked");
+    //console.log(e)
+    //this.props.store_id(e);
+    article_id = e;
+    this.props.newHistory(
+      this.props.access,
+      this.props.id,
+      this.props.refresh,
+      article_id
+    );
+    console.log(article_id);
+    ReactGA.event({
+      category: 'Link',
+      action: 'click',
+      label: e
+    });
   };
 
   // Using props to pass on article information to each card
@@ -319,12 +436,22 @@ class NewsCard extends Component {
 }
 const mapStateToProps = state => ({
   items: state.items,
+  bookmarks: state.bookmarks,
+  likes: state.likes,
+  dislikes: state.dislikes,
   access: state.access,
   id: state.id,
   refresh: state.refresh
 });
 const mapDispatchToProps = {
-  newBookmark: fetchAddBookmarks
+  related: fetchRelatedArticles,
+  newBookmark: fetchAddBookmarks,
+  newHistory: fetchAddHistory,
+  newLike: fetchAddLikes,
+  newDislike: fetchAddDislikes,
+  removeBookmark: fetchRemoveBookmark,
+  removeLike: fetchRemoveLike,
+  removeDislike: fetchRemoveDislike,
 };
 
 export default compose(
