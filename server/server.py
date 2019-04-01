@@ -26,12 +26,9 @@ users_table = db.Table('userData')
 with open('../server/constants.json') as f:
     CONSTANTS = json.load(f)
 
-<<<<<<< Updated upstream
-=======
 db = boto3.resource('dynamodb')
 table = db.Table('NewsHashed')
 users_table = db.Table('userData')
->>>>>>> Stashed changes
 
 def get_syset_info(ids):
     terms = set()
@@ -181,13 +178,27 @@ def register_user():
     u.register(_email, _password)
     try:
         user = {'userId': _email, 'history': [], 'bookmarks': [], "likes": [], "dislikes": [],
-                'ml_one': " ", 'ml_two': " ", 'ml_three': " "}
+                'ml_one': " ", 'ml_two': {}, 'ml_three': " "}
         users_table.put_item(Item=user)
     except:  # if there is any error
         pass
 
     return Response(json.dumps({"status": "Successful Register"}), status=200, mimetype='application/json')
 
+
+
+
+## ****************************** ##
+
+### ALRIGHT LADIES AND GENTLEMEN BIG ASTERISK ON THIS SECTION HERE
+### FLAGS FOR INTERACTION IN ML_TWO ARE IN THE ORDER AS FOLLOWS
+### [ LIKE, DISLIKE, BOOKMARKS, ARTICLE_CLICKED ]
+### EX: ARTICLE = [1,0,1,1] MEANS LIKED, BOOKMARKED, AND CLICKED
+
+## ****************************** ##
+
+
+## UPDATE (ADD) METHODS
 
 @app.route("/user/updateBookmark", methods=['PUT'])
 def update_bookmarks():
@@ -210,6 +221,40 @@ def update_bookmarks():
             },
             ReturnValues="UPDATED_NEW"
         )
+
+        # Here's where we do stuff to ML_TWO.
+        # If the article exists, set the bookmarked flag to 1; 
+        # if doesn't exist, add article with bookmarked flag set to 1
+        user_entry = users_table.get_item(
+            Key={'userId': email}
+        )
+        ml_two = user_entry['Item']['ml_two']
+        if article_id in ml_two:
+            response_two = users_table.update_item(
+                Key = {'userId': email},
+                UpdateExpression="SET ml_two.#a[2] = :v",
+                ExpressionAttributeNames={
+                    '#a': str(article_id),
+                },
+                ExpressionAttributeValues={
+                    ':v': 1,
+                },
+                ReturnValues="UPDATED_NEW"
+            )
+        else:
+            response_two = users_table.update_item(
+                Key = {'userId': email},
+                UpdateExpression="SET ml_two.#a = :L",
+                 ExpressionAttributeNames={
+                    '#a': str(article_id),
+                },
+                ExpressionAttributeValues={
+                    ':L': [0,0,1,0],
+                },
+                ReturnValues="UPDATED_NEW"
+            )
+        for each in ml_two:
+            print(each, ml_two[each], file=sys.stderr)
     return Response(json.dumps({"status": response}), status=200, mimetype='application/json')
 
 @app.route("/user/updateHistory", methods=['PUT'])
@@ -232,6 +277,35 @@ def update_history():
             },
             ReturnValues="UPDATED_NEW"
         )
+
+        user_entry = users_table.get_item(
+            Key={'userId': email}
+        )
+        ml_two = user_entry['Item']['ml_two']
+        if article_id in ml_two:
+            response_two = users_table.update_item(
+                Key = {'userId': email},
+                UpdateExpression="SET ml_two.#a[3] = :v",
+                ExpressionAttributeNames={
+                    '#a': str(article_id),
+                },
+                ExpressionAttributeValues={
+                    ':v': 1,
+                },
+                ReturnValues="UPDATED_NEW"
+            )
+        else:
+            response_two = users_table.update_item(
+                Key = {'userId': email},
+                UpdateExpression="SET ml_two.#a = :L",
+                ExpressionAttributeNames={
+                    '#a': str(article_id),
+                },
+                ExpressionAttributeValues={
+                    ':L': [0,0,0,1],
+                },
+                ReturnValues="UPDATED_NEW"
+            )
     return Response(json.dumps({"status": response}), status=200, mimetype='application/json')
 
 @app.route("/user/updateLikes", methods=['PUT'])
@@ -254,6 +328,35 @@ def update_likes():
             },
             ReturnValues="UPDATED_NEW"
         )
+
+        user_entry = users_table.get_item(
+            Key={'userId': email}
+        )
+        ml_two = user_entry['Item']['ml_two']
+        if article_id in ml_two:
+            response_two = users_table.update_item(
+                Key = {'userId': email},
+                UpdateExpression="SET ml_two.#a[0] = :v",
+                ExpressionAttributeNames={
+                    '#a': str(article_id),
+                },
+                ExpressionAttributeValues={
+                    ':v': 1,
+                },
+                ReturnValues="UPDATED_NEW"
+            )
+        else:
+            response_two = users_table.update_item(
+                Key = {'userId': email},
+                UpdateExpression="SET ml_two.#a = :L",
+                ExpressionAttributeNames={
+                    '#a': str(article_id),
+                },
+                ExpressionAttributeValues={
+                    ':L': [1,0,0,0],
+                },
+                ReturnValues="UPDATED_NEW"
+            )
     return Response(json.dumps({"status": response}), status=200, mimetype='application/json')
 
 @app.route("/user/updateDislikes", methods=['PUT'])
@@ -276,31 +379,40 @@ def update_dislikes():
             },
             ReturnValues="UPDATED_NEW"
         )
-    return Response(json.dumps({"status": response}), status=200, mimetype='application/json')
 
-@app.route("/user/bookmarks", methods=['GET'])
-def get_user_bookmarks():
-    access = request.headers.get('access_token')
-    refresh = request.headers.get('refresh_token')
-    _id = request.headers.get('id_token')
-    valid, email = verify_user(access, refresh, _id)
-    bookmarks = None
-    bookmarks_feed = []
-    # Get user bookmark list
-    # search for those ids in
-    if valid:
-        response = users_table.get_item(
+        user_entry = users_table.get_item(
             Key={'userId': email}
         )
-        bookmarks = response['Item']['bookmarks']
-        for i in bookmarks:
-            response = table.get_item(
-                Key={'id': i}
+        ml_two = user_entry['Item']['ml_two']
+        if article_id in ml_two:
+            response_two = users_table.update_item(
+                Key = {'userId': email},
+                UpdateExpression="SET ml_two.#a[1] = :v",
+                ExpressionAttributeNames={
+                    '#a': str(article_id),
+                },
+                ExpressionAttributeValues={
+                    ':v': 1,
+                },
+                ReturnValues="UPDATED_NEW"
             )
-            bookmarks_feed.append(response['Item'])
-        clean(bookmarks_feed)
-    return Response(json.dumps({"found": bookmarks_feed}), status=200, mimetype='application/json')
+        else:
+            response_two = users_table.update_item(
+                Key = {'userId': email},
+                UpdateExpression="SET ml_two.#a = :L",
+                ExpressionAttributeNames={
+                    '#a': str(article_id),
+                },
+                ExpressionAttributeValues={
+                    ':L': [0,1,0,0],
+                },
+                ReturnValues="UPDATED_NEW"
+            )
+    return Response(json.dumps({"status": response}), status=200, mimetype='application/json')
 
+
+
+## REMOVE METHODS
 
 @app.route("/user/removeBookmark", methods=["PUT"])
 def remove_bookmark():
@@ -328,6 +440,22 @@ def remove_bookmark():
             UpdateExpression="REMOVE bookmarks["+str(remove_index)+"]",
             ReturnValues="ALL_NEW"
         )
+        user_entry = users_table.get_item(
+            Key={'userId': email}
+        )
+        ml_two = user_entry['Item']['ml_two']
+        if article_id in ml_two:
+            response_two = users_table.update_item(
+                Key = {'userId': email},
+                UpdateExpression="SET ml_two.#a[2] = :v",
+                ExpressionAttributeNames={
+                    '#a': str(article_id),
+                },
+                ExpressionAttributeValues={
+                    ':v': 0,
+                },
+                ReturnValues="UPDATED_NEW"
+            )
         del bookmarks[remove_index]
         for i in bookmarks:
             response = table.get_item(
@@ -364,6 +492,22 @@ def remove_like():
             UpdateExpression="REMOVE likes["+str(remove_index)+"]",
             ReturnValues="ALL_NEW"
         )
+        user_entry = users_table.get_item(
+            Key={'userId': email}
+        )
+        ml_two = user_entry['Item']['ml_two']
+        if article_id in ml_two:
+            response_two = users_table.update_item(
+                Key = {'userId': email},
+                UpdateExpression="SET ml_two.#a[0] = :v",
+                ExpressionAttributeNames={
+                    '#a': str(article_id),
+                },
+                ExpressionAttributeValues={
+                    ':v': 0,
+                },
+                ReturnValues="UPDATED_NEW"
+            )
         del likes[remove_index]
         for i in likes:
             response = table.get_item(
@@ -401,6 +545,22 @@ def remove_dislike():
             UpdateExpression="REMOVE dislikes["+str(remove_index)+"]",
             ReturnValues="ALL_NEW"
         )
+        user_entry = users_table.get_item(
+            Key={'userId': email}
+        )
+        ml_two = user_entry['Item']['ml_two']
+        if article_id in ml_two:
+            response_two = users_table.update_item(
+                Key = {'userId': email},
+                UpdateExpression="SET ml_two.#a[1] = :v",
+                ExpressionAttributeNames={
+                    '#a': str(article_id),
+                },
+                ExpressionAttributeValues={
+                    ':v': 0,
+                },
+                ReturnValues="UPDATED_NEW"
+            )
         del dislikes[remove_index]
         for i in dislikes:
             response = table.get_item(
@@ -410,6 +570,32 @@ def remove_dislike():
         clean(dislikes_list)
     return Response(json.dumps({"found": dislikes_list}), status=200, mimetype='application/json')
 
+
+
+## GET METHODS
+
+@app.route("/user/bookmarks", methods=['GET'])
+def get_user_bookmarks():
+    access = request.headers.get('access_token')
+    refresh = request.headers.get('refresh_token')
+    _id = request.headers.get('id_token')
+    valid, email = verify_user(access, refresh, _id)
+    bookmarks = None
+    bookmarks_feed = []
+    # Get user bookmark list
+    # search for those ids in
+    if valid:
+        response = users_table.get_item(
+            Key={'userId': email}
+        )
+        bookmarks = response['Item']['bookmarks']
+        for i in bookmarks:
+            response = table.get_item(
+                Key={'id': i}
+            )
+            bookmarks_feed.append(response['Item'])
+        clean(bookmarks_feed)
+    return Response(json.dumps({"found": bookmarks_feed}), status=200, mimetype='application/json')
 
 
 @app.route("/user/history", methods=['GET'])
