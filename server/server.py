@@ -1,5 +1,6 @@
 # Just sample grabbing sysnet ids nothing too sick...
 # Not quite the best idea should fix Path but its okay
+from __future__ import print_function
 import sys
 sys.path.append("..")
 import boto3
@@ -26,12 +27,11 @@ CORS(app)
 with open('../server/constants.json') as f:
     CONSTANTS = json.load(f)
 
-boto3.setup_default_session(profile_name="clevernews")
-db = boto3.resource('dynamodb', aws_access_key_id=CONSTANTS['aws_access_key_id'],
-    aws_secret_access_key=CONSTANTS['aws_secret_key_id'], region_name=CONSTANTS['aws_region_name'])
+db = boto3.resource('dynamodb')
 table = db.Table('NewsHashed')
 users_table = db.Table('userData')
 events_table = db.Table('events')
+
 
 def get_syset_info(ids):
     terms = set()
@@ -75,6 +75,7 @@ def fetch_category():
     else:
         return Response(json.dumps({'found': []}), status=204, mimetype='application/json')
 
+
 @app.route("/api/ml", methods=['GET'])
 def fetch_related():
     id = request.args.get('field')
@@ -82,23 +83,24 @@ def fetch_related():
     if id:
         response = table.get_item(Key={'id': id})
         print(response)
-    
+
     else:
         return Response(json.dumps({'found': []}), status=204, mimetype='application/json')
-    
+
     if response['Item']['related_ids']:
         related_ids = response['Item']['related_ids']
-        #print(related_ids)
+        # print(related_ids)
         article_data = []
         for rel in related_ids:
             resp = table.get_item(Key={'id': rel})
             if resp['Item']:
                 article_data.append(resp['Item'])
-        #print(article_data[:3])
-        #print(len(article_data))
+        # print(article_data[:3])
+        # print(len(article_data))
         return Response(json.dumps({'found': article_data}), status=200, mimetype='application/json')
     else:
-       return Response(json.dumps({'found': []}), status=204, mimetype='application/json')
+        return Response(json.dumps({'found': []}), status=204, mimetype='application/json')
+
 
 @app.route("/api/inital", methods=['GET'])
 def fetch_initial():
@@ -157,8 +159,9 @@ def login_user():
     dataDict = json.loads(data)
     _email = dataDict.get('email')
     _password = dataDict.get('password')
-    u = Cognito(CONSTANTS['cognito_id'], CONSTANTS['cognito_app'],
-                username=_email)
+    # print(_email, _password, file=sys.stderr)
+    u = Cognito(CONSTANTS['cognito_id'],
+                CONSTANTS['cognito_app'], username=_email)
     u.authenticate(password=_password)
     info = {
         "id_token": u.id_token,
@@ -204,8 +207,8 @@ def register_user():
     u.add_base_attributes(email=_email)
     u.register(_email, _password)
     try:
-        user = {'userId': _email, 'history': [], 'bookmarks': [],
-                'ml_one': " ", 'ml_two': " ", 'ml_three': " "}
+        user = {'userId': _email, 'history': [], 'bookmarks': [], "likes": [], "dislikes": [],
+                'ml_one': " ", 'ml_two': {}, 'ml_three': " "}
         users_table.put_item(Item=user)
     except:  # if there is any error
         pass
@@ -225,9 +228,9 @@ def add_user_event():
     #valid, email = verify_user(access, refresh, _id)
     _id = 'None'
     try:
-        event = {'id': str(uuid.uuid4()), 'time': str(datetime.datetime.now()), 'user_id': str(_id), 
-                'article': str(event['article']), 'category': str(event['category']), 'favorited': str(event['favorited']),
-                'liked': str(event['liked']), 'disliked': str(event['disliked']), 'clicked': str(event['clicked'])}
+        event = {'id': str(uuid.uuid4()), 'time': str(datetime.datetime.now()), 'user_id': str(_id),
+                 'article': str(event['article']), 'category': str(event['category']), 'favorited': str(event['favorited']),
+                 'liked': str(event['liked']), 'disliked': str(event['disliked']), 'clicked': str(event['clicked'])}
         response = events_table.put_item(Item=event)
     except:
         print("Error putting data into events table")
@@ -236,7 +239,7 @@ def add_user_event():
 
 
 @app.route("/user/updateBookmark", methods=['PUT'])
-def update_history():
+def update_bookmarks():
     access = request.headers.get('access_token')
     refresh = request.headers.get('refresh_token')
     _id = request.headers.get('id_token')
@@ -245,16 +248,53 @@ def update_history():
     article_id = dataDict.get('article_id')
     valid, email = verify_user(access, refresh, _id)
     if valid:
+        # ConditionExpression: Only add if it's not in there (otherwise 500's)
         response = users_table.update_item(
             Key={'userId': email},
             UpdateExpression="SET bookmarks = list_append(bookmarks, :i)",
+            ConditionExpression="NOT(contains(bookmarks, :j))",
             ExpressionAttributeValues={
                 ':i': [article_id],
+                ':j': article_id,
             },
             ReturnValues="UPDATED_NEW"
         )
 
+        # Here's where we do stuff to ML_TWO.
+        # If the article exists, set the bookmarked flag to 1;
+        # if doesn't exist, add article with bookmarked flag set to 1
+        user_entry = users_table.get_item(
+            Key={'userId': email}
+        )
+        ml_two = user_entry['Item']['ml_two']
+        if article_id in ml_two:
+            response_two = users_table.update_item(
+                Key={'userId': email},
+                UpdateExpression="SET ml_two.#a[2] = :v",
+                ExpressionAttributeNames={
+                    '#a': str(article_id),
+                },
+                ExpressionAttributeValues={
+                    ':v': 1,
+                },
+                ReturnValues="UPDATED_NEW"
+            )
+        else:
+            response_two = users_table.update_item(
+                Key={'userId': email},
+                UpdateExpression="SET ml_two.#a = :L",
+                ExpressionAttributeNames={
+                    '#a': str(article_id),
+                },
+                ExpressionAttributeValues={
+                    ':L': [0, 0, 1, 0],
+                },
+                ReturnValues="UPDATED_NEW"
+            )
+        for each in ml_two:
+            print(each, ml_two[each], file=sys.stderr)
     return Response(json.dumps({"status": response}), status=200, mimetype='application/json')
+
 
 @app.route("/user/bookmarks", methods=['GET'])
 def get_user_bookmarks():
@@ -279,10 +319,180 @@ def get_user_bookmarks():
         clean(bookmarks_feed)
     return Response(json.dumps({"found": bookmarks_feed}), status=200, mimetype='application/json')
 
+@app.route("/user/updateLikes", methods=['PUT'])
+def update_likes():
+    access = request.headers.get('access_token')
+    refresh = request.headers.get('refresh_token')
+    _id = request.headers.get('id_token')
+    data = request.data
+    dataDict = json.loads(data)
+    article_id = dataDict.get('article_id')
+    valid, email = verify_user(access, refresh, _id)
+    if valid:
+        response = users_table.update_item(
+            Key={'userId': email},
+            UpdateExpression="SET likes = list_append(likes, :i)",
+            ConditionExpression="NOT(contains(likes, :j))",
+            ExpressionAttributeValues={
+                ':i': [article_id],
+                ':j': article_id,
+            },
+            ReturnValues="UPDATED_NEW"
+        )
+
+        user_entry = users_table.get_item(
+            Key={'userId': email}
+        )
+        ml_two = user_entry['Item']['ml_two']
+        if article_id in ml_two:
+            response_two = users_table.update_item(
+                Key = {'userId': email},
+                UpdateExpression="SET ml_two.#a[0] = :v",
+                ExpressionAttributeNames={
+                    '#a': str(article_id),
+                },
+                ExpressionAttributeValues={
+                    ':v': 1,
+                },
+                ReturnValues="UPDATED_NEW"
+            )
+        else:
+            response_two = users_table.update_item(
+                Key = {'userId': email},
+                UpdateExpression="SET ml_two.#a = :L",
+                ExpressionAttributeNames={
+                    '#a': str(article_id),
+                },
+                ExpressionAttributeValues={
+                    ':L': [1,0,0,0],
+                },
+                ReturnValues="UPDATED_NEW"
+            )
+    return Response(json.dumps({"status": response}), status=200, mimetype='application/json')
+
+@app.route("/user/updateDislikes", methods=['PUT'])
+def update_dislikes():
+    access = request.headers.get('access_token')
+    refresh = request.headers.get('refresh_token')
+    _id = request.headers.get('id_token')
+    data = request.data
+    dataDict = json.loads(data)
+    article_id = dataDict.get('article_id')
+    valid, email = verify_user(access, refresh, _id)
+    if valid:
+        response = users_table.update_item(
+            Key={'userId': email},
+            UpdateExpression="SET dislikes = list_append(dislikes, :i)",
+            ConditionExpression="NOT(contains(dislikes, :j))",
+            ExpressionAttributeValues={
+                ':i': [article_id],
+                ':j': article_id,
+            },
+            ReturnValues="UPDATED_NEW"
+        )
+
+        user_entry = users_table.get_item(
+            Key={'userId': email}
+        )
+        ml_two = user_entry['Item']['ml_two']
+        if article_id in ml_two:
+            response_two = users_table.update_item(
+                Key = {'userId': email},
+                UpdateExpression="SET ml_two.#a[1] = :v",
+                ExpressionAttributeNames={
+                    '#a': str(article_id),
+                },
+                ExpressionAttributeValues={
+                    ':v': 1,
+                },
+                ReturnValues="UPDATED_NEW"
+            )
+        else:
+            response_two = users_table.update_item(
+                Key = {'userId': email},
+                UpdateExpression="SET ml_two.#a = :L",
+                ExpressionAttributeNames={
+                    '#a': str(article_id),
+                },
+                ExpressionAttributeValues={
+                    ':L': [0,1,0,0],
+                },
+                ReturnValues="UPDATED_NEW"
+            )
+    return Response(json.dumps({"status": response}), status=200, mimetype='application/json')
+@app.route("/user/history", methods=['GET'])
+def get_user_history():
+    access = request.headers.get('access_token')
+    refresh = request.headers.get('refresh_token')
+    _id = request.headers.get('id_token')
+    valid, email = verify_user(access, refresh, _id)
+    history = None
+    history_feed = []
+    # Get user bookmark list
+    # search for those ids in
+    if valid:
+        response = users_table.get_item(
+            Key={'userId': email}
+        )
+        history = response['Item']['history']
+        for i in history:
+            response = table.get_item(
+                Key={'id': i}
+            )
+            history_feed.append(response['Item'])
+        clean(history_feed)
+    return Response(json.dumps({"found": history_feed}), status=200, mimetype='application/json')
+
+
+@app.route("/user/likes", methods=['GET'])
+def get_user_likes():
+    access = request.headers.get('access_token')
+    refresh = request.headers.get('refresh_token')
+    _id = request.headers.get('id_token')
+    valid, email = verify_user(access, refresh, _id)
+    likes = None
+    likes_list = []
+    # Get user bookmark list
+    # search for those ids in
+    if valid:
+        response = users_table.get_item(
+            Key={'userId': email}
+        )
+        likes = response['Item']['likes']
+        for i in likes:
+            response = table.get_item(
+                Key={'id': i}
+            )
+            likes_list.append(response['Item'])
+    return Response(json.dumps({"found": likes_list}), status=200, mimetype='application/json')
+
+
+@app.route("/user/dislikes", methods=['GET'])
+def get_user_dislikes():
+    access = request.headers.get('access_token')
+    refresh = request.headers.get('refresh_token')
+    _id = request.headers.get('id_token')
+    valid, email = verify_user(access, refresh, _id)
+    dislikes = None
+    dislikes_list = []
+    # Get user bookmark list
+    # search for those ids in
+    if valid:
+        response = users_table.get_item(
+            Key={'userId': email}
+        )
+        dislikes = response['Item']['dislikes']
+        for i in dislikes:
+            response = table.get_item(
+                Key={'id': i}
+            )
+            dislikes_list.append(response['Item'])
+    return Response(json.dumps({"found": dislikes_list}), status=200, mimetype='application/json')
+
 
 if __name__ == "__main__":
-    #fetch_related()
+    # fetch_related()
     # 0.0.0.0 cause public and shit
     app.run(host='0.0.0.0', debug=True)
-    
+
     # get_syset_info(get_sysets_id('elon musk')

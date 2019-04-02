@@ -19,7 +19,20 @@ import {
   RECEIVE_SIGNUP,
   RECIEVE_BOOKMARKS,
   REQUEST_BOOKMARKS,
-  ADD_BOOKMARKS
+  ADD_BOOKMARKS,
+  ADD_HISTORY,
+  ADD_LIKES,
+  ADD_DISLIKES,
+  REQUEST_HISTORY,
+  RECEIVE_HISTORY,
+  RECEIVE_BOOKMARKS_FEED,
+  REQUEST_LIKES,
+  RECEIVE_LIKES,
+  REQUEST_DISLIKES,
+  RECEIVE_DISLIKES,
+  REMOVE_BOOKMARKS,
+  REMOVE_LIKES,
+  REMOVE_DISLIKES
 } from "../actions/actions";
 
 const startState = {
@@ -27,6 +40,9 @@ const startState = {
   open_list: false,
   loading: false,
   items: [],
+  bookmarks: [],
+  likes: [],
+  dislikes: [],
   access: localStorage.getItem("access"),
   refresh: localStorage.getItem("refresh"),
   id: localStorage.getItem("id"),
@@ -49,6 +65,8 @@ const reducer = (state = startState, action) => {
     case RECEIVE_TOPIC_FEED:
       return { ...state, items: action.json, loading: false };
     case RECEIVE_ML_FEED:
+      return { ...state, items: action.json, loading: false };
+    case RECEIVE_BOOKMARKS_FEED:
       return { ...state, items: action.json, loading: false };
     case OPEN_SIDE:
       return { ...state, open: true };
@@ -87,9 +105,34 @@ const reducer = (state = startState, action) => {
     case REQUEST_BOOKMARKS:
       return { ...state, loading: true };
     case RECIEVE_BOOKMARKS:
-      return { ...state, loading: false, items: action.json };
+      return { ...state, loading: false, bookmarks: action.json };
     case ADD_BOOKMARKS:
       return { ...state };
+    case REMOVE_BOOKMARKS:
+      return { ...state };
+    case ADD_LIKES:
+      return { ...state };
+    case REMOVE_LIKES:
+      return { ...state };
+    case ADD_DISLIKES:
+      return { ...state };
+    case REMOVE_DISLIKES:
+      return { ...state };
+    case ADD_HISTORY:
+      return { ...state };
+    case REQUEST_HISTORY:
+      return { ...state, loading: true };
+    case RECEIVE_HISTORY:
+      return { ...state, loading: false, items: action.json };
+    case REQUEST_LIKES:
+      return { ...state };
+    case RECEIVE_LIKES:
+      return { ...state, likes: action.json };
+    case REQUEST_DISLIKES:
+      return { ...state };
+    case RECEIVE_DISLIKES:
+      return { ...state, dislikes: action.json };
+
     default:
       return state;
   }

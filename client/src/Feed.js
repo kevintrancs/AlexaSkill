@@ -8,7 +8,8 @@ import { fade } from "@material-ui/core/styles/colorManipulator";
 import FeedList from "./FeedList";
 import React, { Component } from "react";
 import { connect } from "react-redux";
-import { fetchInitFeed } from "./actions/actions";
+import { fetchInitFeed, fetchBookmarks, fetchLikes, fetchDislikes } from "./actions/actions";
+import { stat } from "fs";
 const drawerWidth = 240;
 
 const styles = theme => ({
@@ -165,6 +166,21 @@ class Feed extends Component {
 
   componentDidMount() {
     this.props.getInit();
+    this.props.getBookmarks(
+      this.props.access,
+      this.props.id,
+      this.props.refresh
+    );
+    this.props.getLikes(
+      this.props.access,
+      this.props.id,
+      this.props.refresh
+    );
+    this.props.getDislikes(
+      this.props.access,
+      this.props.id,
+      this.props.refresh
+    );
   }
 
   render() {
@@ -191,10 +207,17 @@ Feed.propTypes = {
 const mapStateToProps = state => ({
   loading: state.loading,
   items: state.items,
-  open: state.open
+  open: state.open,
+  refresh: state.refresh,
+  id: state.id,
+  access: state.access,
+  bookmarks: state.bookmarks
 });
 const mapDispatchToProps = {
-  getInit: fetchInitFeed
+  getInit: fetchInitFeed,
+  getBookmarks: fetchBookmarks,
+  getLikes: fetchLikes,
+  getDislikes: fetchDislikes
 };
 
 export default compose(

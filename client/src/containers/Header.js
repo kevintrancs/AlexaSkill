@@ -52,14 +52,18 @@ import {
   openList,
   closeList,
   fetchRelatedArticles,
-  fetchBookmarks
+  fetchBookmarks,
+  fetchLikes,
+  fetchDislikes,
+  fetchBookmarksFeed,
+  fetchHistory
 } from "../actions/actions";
 import { article_id } from "./NewsCard";
-import ReactGA from 'react-ga';
+import ReactGA from "react-ga";
 
-ReactGA.initialize('UA-135499199-1', {
+ReactGA.initialize("UA-135499199-1", {
   gaOptions: {
-    name: 'HeaderTracker'
+    name: "HeaderTracker"
   }
 });
 
@@ -225,12 +229,23 @@ class Header extends Component {
 
   getSearch(event) {
     if (event.key === "Enter") {
+      this.props.getBookmarks(
+        this.props.access,
+        this.props.id,
+        this.props.refresh
+      );
+      this.props.getLikes(this.props.access, this.props.id, this.props.refresh);
+      this.props.getDislikes(
+        this.props.access,
+        this.props.id,
+        this.props.refresh
+      );
       var value = event.target.value;
       if (value !== "") {
         this.props.getSearch(value);
         ReactGA.event({
-          category: 'User',
-          action: 'Search',
+          category: "User",
+          action: "Search",
           label: value
         });
       }
@@ -238,12 +253,23 @@ class Header extends Component {
   }
 
   handleCategoryChange(category, index) {
+    this.props.getBookmarks(
+      this.props.access,
+      this.props.id,
+      this.props.refresh
+    );
+    this.props.getLikes(this.props.access, this.props.id, this.props.refresh);
+    this.props.getDislikes(
+      this.props.access,
+      this.props.id,
+      this.props.refresh
+    );
     this.setState({ selectedIndex: index });
     if (category === "Trending" || category === "Breaking") {
       this.props.getInit();
       ReactGA.event({
-        category: 'Category',
-        action: 'Trending/Breaking',
+        category: "Category",
+        action: "Trending/Breaking",
         value: index
       });
     } else if (category === "Bookmarks") {
@@ -253,17 +279,32 @@ class Header extends Component {
           this.props.id,
           this.props.refresh
         );
+        this.props.getBookmarksFeed(
+          this.props.access,
+          this.props.id,
+          this.props.refresh
+        );
+        console.log(this.props.bookmarks);
         ReactGA.event({
-          category: 'Bookmarks',
-          action: 'Go to bookmarks',
+          category: "Bookmarks",
+          action: "Go to bookmarks"
         });
+      } else this.props.getInit();
+    } else if (category === "History") {
+      if (this.props.access !== "null" || this.props.access !== null) {
+        this.props.getHistory(
+          this.props.access,
+          this.props.id,
+          this.props.refresh
+        );
+      } else {
+        this.props.getInit();
       }
-      else this.props.getInit();
     } else {
       this.props.getTopic(category);
       ReactGA.event({
-        category: 'Category',
-        action: 'Change category',
+        category: "Category",
+        action: "Change category",
         label: category,
         value: index
       });
@@ -275,7 +316,7 @@ class Header extends Component {
     //this.setState({ selectedIndex: index });
     //let aid = this.props.storeArticleId
     console.log("article id ", article_id);
-    console.log('id: ', id)
+    console.log("id: ", id);
     this.props.getRelated(article_id);
     console.log("clicked ML tab");
   }
@@ -464,7 +505,12 @@ class Header extends Component {
             </ListItem>
             <Collapse in={open_list} timeout="auto" unmountOnExit>
               <List component="div" disablePadding>
-                <ListItem button className={classes.nested} key={"ML1"} onClick={this.handleMlChange.bind(this, article_id)}>
+                <ListItem
+                  button
+                  className={classes.nested}
+                  key={"ML1"}
+                  onClick={this.handleMlChange.bind(this, article_id)}
+                >
                   <ListItemIcon>
                     <StarBorder />
                   </ListItemIcon>
@@ -500,7 +546,8 @@ const mapStateToProps = state => ({
   open_list: state.open_list,
   access: state.access,
   id: state.id,
-  refresh: state.refresh
+  refresh: state.refresh,
+  bookmarks: state.bookmarks
 });
 
 const mapDispatchToProps = {
@@ -514,7 +561,11 @@ const mapDispatchToProps = {
   loggedOut: loggedOutWorker,
   cl: closeList,
   ol: openList,
-  getBookmarks: fetchBookmarks
+  getBookmarks: fetchBookmarks,
+  getLikes: fetchLikes,
+  getDislikes: fetchDislikes,
+  getBookmarksFeed: fetchBookmarksFeed,
+  getHistory: fetchHistory
 };
 
 export default compose(

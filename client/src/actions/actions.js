@@ -3,6 +3,7 @@ export const RECEIVE_INIT_FEED = "RECEIVE_INIT_FEED";
 export const RECEIVE_SEARCH_FEED = "RECEIVE_SEARCH_FEED";
 export const RECEIVE_TOPIC_FEED = "RECEIVE_TOPIC_FEED";
 export const RECEIVE_ML_FEED = "RECEIVE_ML_FEED";
+export const RECEIVE_BOOKMARKS_FEED = "RECEIVE_BOOKMARK_FEED";
 export const CLOSE_SIDE = "CLOSE_SIDE";
 export const OPEN_SIDE = "OPEN_SIDE";
 export const OPEN_NEST = "OPEN_NEST";
@@ -18,8 +19,20 @@ export const REQUEST_SIGNUP = "REQUEST_SIGNUP";
 export const RECEIVE_SIGNUP = "RECEIVE_SIGNUP";
 export const RECIEVE_BOOKMARKS = "RECIEVE_BOOKMARKS";
 export const REQUEST_BOOKMARKS = "REQUEST_BOOKMARKS";
+export const REQUEST_HISTORY = "REQUEST_HISTORY";
+export const RECEIVE_HISTORY = "RECEIVE_HISTORY";
+export const REQUEST_LIKES = "REQUEST_LIKES";
+export const RECEIVE_LIKES = "RECEIVE_LIKES";
+export const REQUEST_DISLIKES = "REQUEST_DISLIKES";
+export const RECEIVE_DISLIKES = "RECEIVE_DISLIKES";
 export const ADD_BOOKMARKS = "ADD_BOOKMARKS";
 export const STORE_EVENT = "STORE_EVENT";
+export const ADD_HISTORY = "ADD_HISTORY";
+export const ADD_LIKES = "ADD_LIKES";
+export const ADD_DISLIKES = "ADD_DISLIKES";
+export const REMOVE_BOOKMARKS = "REMOVE_BOOKMARKS";
+export const REMOVE_LIKES = "REMOVE_LIKES";
+export const REMOVE_DISLIKES = "REMOVE_DISLIKES";
 
 const headers = {
   "Access-Control-Allow-Origin": "*",
@@ -30,8 +43,26 @@ const headers = {
 export const storeEvent = json => ({
   type: STORE_EVENT
 });
+export const addHistory = json => ({
+  type: ADD_HISTORY
+});
 export const addBookmarks = json => ({
   type: ADD_BOOKMARKS
+});
+export const removeBookmark = json => ({
+  type: REMOVE_BOOKMARKS
+});
+export const addLikes = json => ({
+  type: ADD_LIKES
+});
+export const removeLike = json => ({
+  type: REMOVE_LIKES
+});
+export const addDislikes = json => ({
+  type: ADD_DISLIKES
+});
+export const removeDislike = json => ({
+  type: REMOVE_DISLIKES
 });
 export const requestBookmarks = () => ({
   type: REQUEST_BOOKMARKS
@@ -40,6 +71,28 @@ export const receiveBookmarks = json => ({
   type: RECIEVE_BOOKMARKS,
   json: json
 });
+export const requestHistory = () => ({
+  type: REQUEST_HISTORY
+});
+export const receiveHistory = json => ({
+  type: RECEIVE_HISTORY,
+  json: json
+});
+export const requestLikes = () => ({
+  type: REQUEST_LIKES
+});
+export const receiveLikes = json => ({
+  type: RECEIVE_LIKES,
+  json: json
+});
+export const requestDislikes = () => ({
+  type: REQUEST_DISLIKES
+});
+export const receiveDislikes = json => ({
+  type: RECEIVE_DISLIKES,
+  json: json
+});
+
 export const requestSignUp = () => ({
   type: REQUEST_SIGNUP
 });
@@ -73,6 +126,10 @@ export const receiveMlFeed = json => ({
   type: RECEIVE_ML_FEED,
   json: json
 });
+export const receiveBookmarksFeed = json => ({
+  type: RECEIVE_BOOKMARKS_FEED,
+  json: json
+});
 export const openNest = () => ({
   type: OPEN_NEST
 });
@@ -104,6 +161,7 @@ export const updatePasswordConfirm = str => ({
   type: UPDATE_PASSWORD_CONFIRM,
   str: str
 });
+
 // Dispatches
 export function updateEmailWorker(val) {
   return function(dispatch) {
@@ -199,7 +257,9 @@ export function fetchTopicFeed(category) {
   return function(dispatch) {
     dispatch(requestFeed());
     return fetch(
-      "http://localhost:5000/api/category?field=" + category, headers)
+      "http://localhost:5000/api/category?field=" + category,
+      headers
+    )
       .then(results => results.json())
       .catch(err => {
         return Promise.reject();
@@ -213,11 +273,36 @@ export function fetchTopicFeed(category) {
   };
 }
 
+export function fetchBookmarksFeed(access, id, refresh) {
+  return function(dispatch) {
+    dispatch(requestFeed());
+    // Refresh our bookmarks just in case
+    // Then set items = bookmarks
+    var cust_headers = headers;
+    cust_headers["access_token"] = access;
+    cust_headers["id_token"] = id;
+    cust_headers["refresh_token"] = refresh;
+    return fetch("http://localhost:5000/user/bookmarks", {
+      method: "GET",
+      headers: cust_headers
+    })
+      .then(results => results.json())
+      .catch(err => {
+        return Promise.reject();
+      })
+      .then(json => {
+        dispatch(receiveBookmarksFeed(json.found));
+      })
+      .catch(err => {
+        return Promise.reject();
+      });
+  };
+}
+
 export function fetchRelatedArticles(id) {
   return function(dispatch) {
     dispatch(requestFeed());
-    return fetch(
-      "http://localhost:5000/api/ml?field=" + id, headers)
+    return fetch("http://localhost:5000/api/ml?field=" + id, headers)
       .then(results => results.json())
       .then(json => {
         dispatch(receiveMlFeed(json.found));
@@ -244,6 +329,77 @@ export function fetchBookmarks(access, id, refresh) {
       })
       .then(json => {
         dispatch(receiveBookmarks(json.found));
+      })
+      .catch(err => {
+        return Promise.reject();
+      });
+  };
+}
+
+export function fetchLikes(access, id, refresh) {
+  return function(dispatch) {
+    var cust_headers = headers;
+    cust_headers["access_token"] = access;
+    cust_headers["id_token"] = id;
+    cust_headers["refresh_token"] = refresh;
+    return fetch("http://localhost:5000/user/likes", {
+      method: "GET",
+      headers: cust_headers
+    })
+      .then(results => results.json())
+      .catch(err => {
+        return Promise.reject();
+      })
+      .then(json => {
+        dispatch(receiveLikes(json.found));
+      })
+      .catch(err => {
+        return Promise.reject();
+      });
+  };
+}
+
+export function fetchDislikes(access, id, refresh) {
+  return function(dispatch) {
+    var cust_headers = headers;
+    cust_headers["access_token"] = access;
+    cust_headers["id_token"] = id;
+    cust_headers["refresh_token"] = refresh;
+    return fetch("http://localhost:5000/user/dislikes", {
+      method: "GET",
+      headers: cust_headers
+    })
+      .then(results => results.json())
+      .catch(err => {
+        return Promise.reject();
+      })
+      .then(json => {
+        dispatch(receiveDislikes(json.found));
+      })
+      .catch(err => {
+        return Promise.reject();
+      });
+  };
+}
+
+export function fetchHistory(access, id, refresh) {
+  return function(dispatch) {
+    dispatch(requestHistory());
+    var cust_headers = headers;
+    cust_headers["access_token"] = access;
+    cust_headers["id_token"] = id;
+    cust_headers["refresh_token"] = refresh;
+
+    return fetch("http://localhost:5000/user/history", {
+      method: "GET",
+      headers: cust_headers
+    })
+      .then(results => results.json())
+      .catch(err => {
+        return Promise.reject();
+      })
+      .then(json => {
+        dispatch(receiveHistory(json.found));
       })
       .catch(err => {
         return Promise.reject();
@@ -319,6 +475,9 @@ export function fetchStoreEvents(access, id, refresh, dict) {
   };
 }
 
+// functions for adding an article (presumably article id) to a given
+// user list, defined within the function title / api address
+
 export function fetchAddBookmarks(access, id, refresh, article) {
   return function(dispatch) {
     var cust_headers = headers;
@@ -336,6 +495,151 @@ export function fetchAddBookmarks(access, id, refresh, article) {
       })
       .then(json => {
         dispatch(addBookmarks(json.status));
+      })
+      .catch(err => {
+        return Promise.reject();
+      });
+  };
+}
+
+export function fetchRemoveBookmark(access, id, refresh, article) {
+  return function(dispatch) {
+    dispatch(removeBookmark());
+    var cust_headers = headers;
+    cust_headers["access_token"] = access;
+    cust_headers["id_token"] = id;
+    cust_headers["refresh_token"] = refresh;
+    return fetch("http://localhost:5000/user/removeBookmark", {
+      method: "PUT",
+      headers: cust_headers,
+      body: JSON.stringify({ article_id: article })
+    })
+      .then(results => results.json())
+      .catch(err => {
+        return Promise.reject();
+      })
+      .then(json => {
+        dispatch(receiveBookmarks(json.found));
+      })
+      .catch(err => {
+        return Promise.reject();
+      });
+  };
+}
+
+export function fetchAddHistory(access, id, refresh, article) {
+  return function(dispatch) {
+    var cust_headers = headers;
+    cust_headers["access_token"] = access;
+    cust_headers["id_token"] = id;
+    cust_headers["refresh_token"] = refresh;
+    return fetch("http://localhost:5000/user/updateHistory", {
+      method: "PUT",
+      headers: cust_headers,
+      body: JSON.stringify({ article_id: article })
+    })
+      .then(results => results.json())
+      .catch(err => {
+        return Promise.reject();
+      })
+      .then(json => {
+        dispatch(addBookmarks(json.status));
+      })
+      .catch(err => {
+        return Promise.reject();
+      });
+  };
+}
+export function fetchAddLikes(access, id, refresh, article) {
+  return function(dispatch) {
+    var cust_headers = headers;
+    cust_headers["access_token"] = access;
+    cust_headers["id_token"] = id;
+    cust_headers["refresh_token"] = refresh;
+    return fetch("http://localhost:5000/user/updateLikes", {
+      method: "PUT",
+      headers: cust_headers,
+      body: JSON.stringify({ article_id: article })
+    })
+      .then(results => results.json())
+      .catch(err => {
+        return Promise.reject();
+      })
+      .then(json => {
+        dispatch(addLikes(json.status));
+      })
+      .catch(err => {
+        return Promise.reject();
+      });
+  };
+}
+
+export function fetchRemoveLike(access, id, refresh, article) {
+  return function(dispatch) {
+    dispatch(removeBookmark());
+    var cust_headers = headers;
+    cust_headers["access_token"] = access;
+    cust_headers["id_token"] = id;
+    cust_headers["refresh_token"] = refresh;
+    return fetch("http://localhost:5000/user/removeLike", {
+      method: "PUT",
+      headers: cust_headers,
+      body: JSON.stringify({ article_id: article })
+    })
+      .then(results => results.json())
+      .catch(err => {
+        return Promise.reject();
+      })
+      .then(json => {
+        dispatch(receiveLikes(json.found));
+      })
+      .catch(err => {
+        return Promise.reject();
+      });
+  };
+}
+export function fetchAddDislikes(access, id, refresh, article) {
+  return function(dispatch) {
+    var cust_headers = headers;
+    cust_headers["access_token"] = access;
+    cust_headers["id_token"] = id;
+    cust_headers["refresh_token"] = refresh;
+    return fetch("http://localhost:5000/user/updateDislikes", {
+      method: "PUT",
+      headers: cust_headers,
+      body: JSON.stringify({ article_id: article })
+    })
+      .then(results => results.json())
+      .catch(err => {
+        return Promise.reject();
+      })
+      .then(json => {
+        dispatch(addDislikes(json.status));
+      })
+      .catch(err => {
+        return Promise.reject();
+      });
+  };
+}
+
+export function fetchRemoveDislike(access, id, refresh, article) {
+  return function(dispatch) {
+    dispatch(removeBookmark());
+    var cust_headers = headers;
+    cust_headers["access_token"] = access;
+    cust_headers["id_token"] = id;
+    cust_headers["refresh_token"] = refresh;
+    return fetch("http://localhost:5000/user/removeDislike", {
+      method: "PUT",
+      headers: cust_headers,
+      body: JSON.stringify({ article_id: article })
+    })
+      .then(results => results.json())
+      .catch(err => {
+        return Promise.reject();
+      })
+      .then(json => {
+        dispatch(receiveDislikes(json.found));
       })
       .catch(err => {
         return Promise.reject();
