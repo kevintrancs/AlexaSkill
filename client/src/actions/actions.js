@@ -2,11 +2,8 @@ export const REQUEST_FEED = "REQUEST_FEED";
 export const RECEIVE_INIT_FEED = "RECEIVE_INIT_FEED";
 export const RECEIVE_SEARCH_FEED = "RECEIVE_SEARCH_FEED";
 export const RECEIVE_TOPIC_FEED = "RECEIVE_TOPIC_FEED";
-<<<<<<< Updated upstream
-=======
 export const RECEIVE_ML_FEED = "RECEIVE_ML_FEED";
 export const RECEIVE_BOOKMARKS_FEED = "RECEIVE_BOOKMARK_FEED";
->>>>>>> Stashed changes
 export const CLOSE_SIDE = "CLOSE_SIDE";
 export const OPEN_SIDE = "OPEN_SIDE";
 export const OPEN_NEST = "OPEN_NEST";

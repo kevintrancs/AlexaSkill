@@ -51,16 +51,12 @@ import {
   loggingOutWorker,
   openList,
   closeList,
-<<<<<<< Updated upstream
-  fetchBookmarks
-=======
   fetchRelatedArticles,
   fetchBookmarks,
   fetchLikes,
   fetchDislikes,
   fetchBookmarksFeed,
   fetchHistory
->>>>>>> Stashed changes
 } from "../actions/actions";
 const drawerWidth = 240;
 
@@ -272,22 +268,13 @@ class Header extends Component {
           this.props.id,
           this.props.refresh
         );
-<<<<<<< Updated upstream
-=======
         this.props.getBookmarksFeed(
           this.props.access,
           this.props.id,
           this.props.refresh
         );
         console.log(this.props.bookmarks);
-        ReactGA.event({
-          category: 'Bookmarks',
-          action: 'Go to bookmarks',
-        });
-      }
->>>>>>> Stashed changes
-      else this.props.getInit();
-    } 
+      } 
     else if (category === "History") {
       if (this.props.access !== "null" || this.props.access !== null) {
         this.props.getHistory(
@@ -303,7 +290,7 @@ class Header extends Component {
       this.props.getTopic(category);
     }
     // temp fix
-  }
+}
   handleDrawerOpen = () => {
     this.props.o();
     console.log("open triggered");

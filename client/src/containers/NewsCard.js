@@ -15,14 +15,11 @@ import ThumbDownOutlinedIcon from "@material-ui/icons/ThumbDownOutlined";
 import ThumbDownIcon from "@material-ui/icons/ThumbDown";
 import StarBorderOutlinedIcon from "@material-ui/icons/StarBorderOutlined";
 import StarIcon from "@material-ui/icons/Star";
-<<<<<<< Updated upstream
-=======
 import ReactGA from 'react-ga';
 import {
   fetchRelatedArticles, fetchAddHistory, fetchAddLikes, fetchAddDislikes, fetchRemoveBookmark, fetchRemoveLike, fetchRemoveDislike
 } from '../actions/actions'
 
->>>>>>> Stashed changes
 import { fetchAddBookmarks } from "../actions/actions";
 const drawerWidth = 240;
 
@@ -194,10 +191,6 @@ class NewsCard extends Component {
     const item = this.props.item;
     // console.log(this.props.bookmarks.some(other => item.id === other.id));
     // Tracking state of important clicked bools
-    this.setState({
-      favorited: this.props.bookmarked
-    });
-    this.forceUpdate();
   }
 
   likeButtonClicked(article) {
@@ -218,11 +211,13 @@ class NewsCard extends Component {
         );
       }
       this.setState({ liked: !this.state.liked });
+      /*
       ReactGA.event({
         category: 'Like button',
         action: 'Unliked article',
         value: 0
       });
+      */
 
     } else {
       this.setState({ liked: true, disliked: false });
@@ -238,22 +233,18 @@ class NewsCard extends Component {
         this.props.refresh,
         article
       )
-      ReactGA.event({
+      /*ReactGA.event({
         category: 'Like button',
         action: 'Liked article',
         value: 1
-      });
+      });*/
     }
   };
   dislikeButtonClicked(article) {
     if (this.state.liked && !this.state.disliked) {
       // If the article is liked, flip both
       this.setState({ disliked: true, liked: false });
-      ReactGA.event({
-        category: 'Dislike button',
-        action: 'Dislike article',
-        value: 1
-      });
+
       this.props.removeLike(
         this.props.access,
         this.props.id,
@@ -266,6 +257,12 @@ class NewsCard extends Component {
         this.props.refresh,
         article
       );
+      /*
+      ReactGA.event({
+        category: 'Dislike button',
+        action: 'Dislike article',
+        value: 1
+      });*/
     }
     // Otherwise, just flip disliked
     else {
@@ -297,12 +294,13 @@ class NewsCard extends Component {
         article
       );
       console.log(article);
+      /*
       ReactGA.event({
         category: 'Bookmarks',
         action: 'Favorited article',
         label: article,
         value: 1
-      });
+      });*/
     } else {
       this.props.removeBookmark(
         this.props.access,
@@ -316,23 +314,22 @@ class NewsCard extends Component {
   }
   // Little function to add to a user's history. Replace alert
   // With whatever logic we need (supercedes redirect authority)
-  articleClicked = e => {
+  articleClicked(article) {
     console.log("Link Clicked");
     //console.log(e)
     //this.props.store_id(e);
-    article_id = e;
     this.props.newHistory(
       this.props.access,
       this.props.id,
       this.props.refresh,
-      article_id
+      article
     );
-    console.log(article_id);
+    /*
     ReactGA.event({
       category: 'Link',
       action: 'click',
-      label: e
-    });
+      label: article
+    });*/
   };
 
   // Using props to pass on article information to each card
@@ -354,7 +351,7 @@ class NewsCard extends Component {
         <div className={classes.details}>
           <CardContent className={classes.content}>
             <Typography component="h5" variant="h6">
-              <a href={item.url} target="_blank" onClick={this.articleClicked}>
+              <a href={item.url} target="_blank" onClick={this.articleClicked.bind(this, id)}>
                 {x}
               </a>
             </Typography>
@@ -386,26 +383,26 @@ class NewsCard extends Component {
               {this.state.liked ? (
                 <ThumbUpIcon
                   className={classes.likeIcon}
-                  onClick={this.likeButtonClicked}
+                  onClick={this.likeButtonClicked.bind(this, id)}
                   style={{ float: "left" }}
                 />
               ) : (
                 <ThumbUpOutlinedIcon
                   className={classes.likeIcon}
-                  onClick={this.likeButtonClicked}
+                  onClick={this.likeButtonClicked.bind(this, id)}
                   style={{ float: "left" }}
                 />
               )}
               {this.state.disliked ? (
                 <ThumbDownIcon
                   className={classes.likeIcon}
-                  onClick={this.dislikeButtonClicked}
+                  onClick={this.dislikeButtonClicked.bind(this, id)}
                   style={{ float: "left" }}
                 />
               ) : (
                 <ThumbDownOutlinedIcon
                   className={classes.likeIcon}
-                  onClick={this.dislikeButtonClicked}
+                  onClick={this.dislikeButtonClicked.bind(this, id)}
                   style={{ float: "left" }}
                 />
               )}
