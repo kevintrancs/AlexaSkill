@@ -23,6 +23,12 @@ import {
 import { fetchAddBookmarks } from "../actions/actions";
 const drawerWidth = 240;
 
+ReactGA.initialize('UA-135499199-1', {
+  gaOptions: {
+    name: 'NewsCardTracker'
+  }
+});
+
 const styles = theme => ({
   root: {
     display: "flex"
@@ -175,6 +181,8 @@ const styles = theme => ({
   }
 });
 
+export var article_id = '';
+
 class NewsCard extends Component {
   constructor(props) {
     super(props);
@@ -282,6 +290,11 @@ class NewsCard extends Component {
         );
       }
       this.setState({ disliked: !this.state.disliked });
+      ReactGA.event({
+        category: 'Dislike button',
+        action: 'Undislike article',
+        value: 0
+      });
     }
   };
   favoriteButtonClicked(article) {
@@ -314,22 +327,17 @@ class NewsCard extends Component {
   }
   // Little function to add to a user's history. Replace alert
   // With whatever logic we need (supercedes redirect authority)
-  articleClicked(article) {
+  articleClicked (e) {
     console.log("Link Clicked");
     //console.log(e)
     //this.props.store_id(e);
-    this.props.newHistory(
-      this.props.access,
-      this.props.id,
-      this.props.refresh,
-      article
-    );
-    /*
+    article_id = e;
+    console.log(article_id);
     ReactGA.event({
       category: 'Link',
       action: 'click',
-      label: article
-    });*/
+      label: e
+    });
   };
 
   // Using props to pass on article information to each card
@@ -351,7 +359,7 @@ class NewsCard extends Component {
         <div className={classes.details}>
           <CardContent className={classes.content}>
             <Typography component="h5" variant="h6">
-              <a href={item.url} target="_blank" onClick={this.articleClicked.bind(this, id)}>
+              <a href={item.url} target="_blank" onClick={this.articleClicked.bind(this, item.id)}>
                 {x}
               </a>
             </Typography>

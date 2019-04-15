@@ -58,6 +58,15 @@ import {
   fetchBookmarksFeed,
   fetchHistory
 } from "../actions/actions";
+import { article_id } from "./NewsCard";
+import ReactGA from 'react-ga';
+
+ReactGA.initialize('UA-135499199-1', {
+  gaOptions: {
+    name: 'HeaderTracker'
+  }
+});
+
 const drawerWidth = 240;
 
 const styles = theme => ({
@@ -238,6 +247,11 @@ class Header extends Component {
       var value = event.target.value;
       if (value !== "") {
         this.props.getSearch(value);
+        ReactGA.event({
+          category: 'User',
+          action: 'Search',
+          label: value
+        });
       }
     }
   }
@@ -261,8 +275,13 @@ class Header extends Component {
     this.setState({ selectedIndex: index });
     if (category === "Trending" || category === "Breaking") {
       this.props.getInit();
+      ReactGA.event({
+        category: 'Category',
+        action: 'Trending/Breaking',
+        value: index
+      });
     } else if (category === "Bookmarks") {
-      if (this.props.access != "null" || this.props.access != null)
+      if (this.props.access !== "null" || this.props.access != null) {
         this.props.getBookmarks(
           this.props.access,
           this.props.id,
@@ -274,7 +293,8 @@ class Header extends Component {
           this.props.refresh
         );
         console.log(this.props.bookmarks);
-      } 
+      }
+    }
     else if (category === "History") {
       if (this.props.access !== "null" || this.props.access !== null) {
         this.props.getHistory(
@@ -288,9 +308,25 @@ class Header extends Component {
     }
     else {
       this.props.getTopic(category);
+      ReactGA.event({
+        category: 'Category',
+        action: 'Change category',
+        label: category,
+        value: index
+      });
     }
+  };
     // temp fix
-}
+
+  handleMlChange(id) {
+    //this.setState({ selectedIndex: index });
+    //let aid = this.props.storeArticleId
+    console.log("article id ", article_id);
+    console.log('id: ', id)
+    this.props.getRelated(article_id);
+    console.log("clicked ML tab");
+  }
+
   handleDrawerOpen = () => {
     this.props.o();
     console.log("open triggered");
@@ -300,6 +336,7 @@ class Header extends Component {
     this.props.c();
     console.log("close triggered");
   };
+
   handleListOpen = () => {
     console.log(this.props.open_list);
     this.setState({ selectedIndex: 10 });
@@ -319,7 +356,7 @@ class Header extends Component {
     this.props.loggingOut();
   };
 
-  render() {
+  render(){
     const { classes, theme } = this.props;
     const { open, open_list } = this.props;
     const icons = [
@@ -385,7 +422,7 @@ class Header extends Component {
                 " "
               )}
             </div>
-            {this.props.access == null || this.props.access == "null" ? (
+            {this.props.access === null || this.props.access === "null" ? (
               <div className="LoginButtons">
                 <Button
                   className={"pull-right"}
@@ -475,7 +512,7 @@ class Header extends Component {
             </ListItem>
             <Collapse in={open_list} timeout="auto" unmountOnExit>
               <List component="div" disablePadding>
-                <ListItem button className={classes.nested}>
+                <ListItem button className={classes.nested} key={"ML1"} onClick={this.handleMlChange.bind(this, article_id)}>
                   <ListItemIcon>
                     <StarBorder />
                   </ListItemIcon>
@@ -519,6 +556,7 @@ const mapDispatchToProps = {
   getInit: fetchInitFeed,
   getSearch: fetchSearchFeed,
   getTopic: fetchTopicFeed,
+  getRelated: fetchRelatedArticles,
   c: closeDrawer,
   o: openDrawer,
   loggingOut: loggingOutWorker,

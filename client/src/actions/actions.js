@@ -256,9 +256,7 @@ export function fetchTopicFeed(category) {
   return function(dispatch) {
     dispatch(requestFeed());
     return fetch(
-      "http://localhost:5000/api/category?field=" + category,
-      headers
-    )
+      "http://localhost:5000/api/category?field=" + category, headers)
       .then(results => results.json())
       .catch(err => {
         return Promise.reject();
@@ -309,7 +307,6 @@ export function fetchRelatedArticles(id) {
       });
   };
 }
-
 
 export function fetchBookmarks(access, id, refresh) {
   return function(dispatch) {
