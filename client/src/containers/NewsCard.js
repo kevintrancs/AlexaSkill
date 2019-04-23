@@ -206,10 +206,6 @@ class NewsCard extends Component {
     const item = this.props.item;
     // console.log(this.props.bookmarks.some(other => item.id === other.id));
     // Tracking state of important clicked bools
-    this.setState({
-      favorited: this.props.bookmarked
-    });
-    this.forceUpdate();
   }
 
   likeButtonClicked(article) {
@@ -253,7 +249,7 @@ class NewsCard extends Component {
         category: "Like button",
         action: "Liked article",
         value: 1
-      });
+      });*/
     }
   }
   dislikeButtonClicked(article) {

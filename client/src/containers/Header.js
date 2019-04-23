@@ -309,8 +309,8 @@ class Header extends Component {
         value: index
       });
     }
+  };
     // temp fix
-  }
 
   handleMlChange(id) {
     //this.setState({ selectedIndex: index });
@@ -330,6 +330,7 @@ class Header extends Component {
     this.props.c();
     console.log("close triggered");
   };
+
   handleListOpen = () => {
     console.log(this.props.open_list);
     this.setState({ selectedIndex: 10 });
@@ -349,7 +350,7 @@ class Header extends Component {
     this.props.loggingOut();
   };
 
-  render() {
+  render(){
     const { classes, theme } = this.props;
     const { open, open_list } = this.props;
     const icons = [
