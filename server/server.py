@@ -15,8 +15,6 @@ import requests
 import json
 import operator
 import os
-import datetime
-import uuid
 from data.news import headers, pull
 from warrant import Cognito
 from jose import jwt, jwk
@@ -30,8 +28,6 @@ with open('../server/constants.json') as f:
 db = boto3.resource('dynamodb')
 table = db.Table('NewsHashed')
 users_table = db.Table('userData')
-events_table = db.Table('events')
-
 
 def get_syset_info(ids):
     terms = set()
@@ -75,7 +71,6 @@ def fetch_category():
     else:
         return Response(json.dumps({'found': []}), status=204, mimetype='application/json')
 
-
 @app.route("/api/ml", methods=['GET'])
 def fetch_related():
     id = request.args.get('field')
@@ -83,24 +78,23 @@ def fetch_related():
     if id:
         response = table.get_item(Key={'id': id})
         print(response)
-
+    
     else:
         return Response(json.dumps({'found': []}), status=204, mimetype='application/json')
-
+    
     if response['Item']['related_ids']:
         related_ids = response['Item']['related_ids']
-        # print(related_ids)
+        #print(related_ids)
         article_data = []
         for rel in related_ids:
             resp = table.get_item(Key={'id': rel})
             if resp['Item']:
                 article_data.append(resp['Item'])
-        # print(article_data[:3])
-        # print(len(article_data))
+        #print(article_data[:3])
+        #print(len(article_data))
         return Response(json.dumps({'found': article_data}), status=200, mimetype='application/json')
     else:
-        return Response(json.dumps({'found': []}), status=204, mimetype='application/json')
-
+       return Response(json.dumps({'found': []}), status=204, mimetype='application/json')
 
 @app.route("/api/inital", methods=['GET'])
 def fetch_initial():
@@ -159,9 +153,8 @@ def login_user():
     dataDict = json.loads(data)
     _email = dataDict.get('email')
     _password = dataDict.get('password')
-    # print(_email, _password, file=sys.stderr)
-    u = Cognito(CONSTANTS['cognito_id'],
-                CONSTANTS['cognito_app'], username=_email)
+    #print(_email, _password, file=sys.stderr)
+    u = Cognito(CONSTANTS['cognito_id'], CONSTANTS['cognito_app'], username=_email)
     u.authenticate(password=_password)
     info = {
         "id_token": u.id_token,
@@ -216,27 +209,19 @@ def register_user():
     return Response(json.dumps({"status": "Successful Register"}), status=200, mimetype='application/json')
 
 
-@app.route("/user/addEvent", methods=['PUT'])
-def add_user_event():
-    access = request.headers.get('access_token')
-    refresh = request.headers.get('refresh_token')
-    _id = request.headers.get('id_token')
-    data = request.data
-    dataDict = json.loads(data)
-    event = dataDict.get('event_dict')
-    print(event)
-    #valid, email = verify_user(access, refresh, _id)
-    _id = 'None'
-    try:
-        event = {'id': str(uuid.uuid4()), 'time': str(datetime.datetime.now()), 'user_id': str(_id),
-                 'article': str(event['article']), 'category': str(event['category']), 'favorited': str(event['favorited']),
-                 'liked': str(event['liked']), 'disliked': str(event['disliked']), 'clicked': str(event['clicked'])}
-        response = events_table.put_item(Item=event)
-    except:
-        print("Error putting data into events table")
 
-    return Response(json.dumps({"status": "Successful event store"}), status=200, mimetype='application/json')
 
+## ****************************** ##
+
+### ALRIGHT LADIES AND GENTLEMEN BIG ASTERISK ON THIS SECTION HERE
+### FLAGS FOR INTERACTION IN ML_TWO ARE IN THE ORDER AS FOLLOWS
+### [ LIKE, DISLIKE, BOOKMARKS, ARTICLE_CLICKED ]
+### EX: ARTICLE = [1,0,1,1] MEANS LIKED, BOOKMARKED, AND CLICKED
+
+## ****************************** ##
+
+
+## UPDATE (ADD) METHODS
 
 @app.route("/user/updateBookmark", methods=['PUT'])
 def update_bookmarks():
@@ -261,7 +246,7 @@ def update_bookmarks():
         )
 
         # Here's where we do stuff to ML_TWO.
-        # If the article exists, set the bookmarked flag to 1;
+        # If the article exists, set the bookmarked flag to 1; 
         # if doesn't exist, add article with bookmarked flag set to 1
         user_entry = users_table.get_item(
             Key={'userId': email}
@@ -269,7 +254,7 @@ def update_bookmarks():
         ml_two = user_entry['Item']['ml_two']
         if article_id in ml_two:
             response_two = users_table.update_item(
-                Key={'userId': email},
+                Key = {'userId': email},
                 UpdateExpression="SET ml_two.#a[2] = :v",
                 ExpressionAttributeNames={
                     '#a': str(article_id),
@@ -281,13 +266,13 @@ def update_bookmarks():
             )
         else:
             response_two = users_table.update_item(
-                Key={'userId': email},
+                Key = {'userId': email},
                 UpdateExpression="SET ml_two.#a = :L",
-                ExpressionAttributeNames={
+                 ExpressionAttributeNames={
                     '#a': str(article_id),
                 },
                 ExpressionAttributeValues={
-                    ':L': [0, 0, 1, 0],
+                    ':L': [0,0,1,0],
                 },
                 ReturnValues="UPDATED_NEW"
             )
@@ -295,29 +280,56 @@ def update_bookmarks():
             print(each, ml_two[each], file=sys.stderr)
     return Response(json.dumps({"status": response}), status=200, mimetype='application/json')
 
-
-@app.route("/user/bookmarks", methods=['GET'])
-def get_user_bookmarks():
+@app.route("/user/updateHistory", methods=['PUT'])
+def update_history():
     access = request.headers.get('access_token')
     refresh = request.headers.get('refresh_token')
     _id = request.headers.get('id_token')
+    data = request.data
+    dataDict = json.loads(data)
+    article_id = dataDict.get('article_id')
     valid, email = verify_user(access, refresh, _id)
-    bookmarks = None
-    bookmarks_feed = []
-    # Get user bookmark list
-    # search for those ids in
     if valid:
-        response = users_table.get_item(
+        response = users_table.update_item(
+            Key={'userId': email},
+            UpdateExpression="SET history = list_append(history, :i)",
+            ConditionExpression="NOT(contains(history, :j))",
+            ExpressionAttributeValues={
+                ':i': [article_id],
+                ':j': article_id,
+            },
+            ReturnValues="UPDATED_NEW"
+        )
+
+        user_entry = users_table.get_item(
             Key={'userId': email}
         )
-        bookmarks = response['Item']['bookmarks']
-        for i in bookmarks:
-            response = table.get_item(
-                Key={'id': i}
+        ml_two = user_entry['Item']['ml_two']
+        if article_id in ml_two:
+            response_two = users_table.update_item(
+                Key = {'userId': email},
+                UpdateExpression="SET ml_two.#a[3] = :v",
+                ExpressionAttributeNames={
+                    '#a': str(article_id),
+                },
+                ExpressionAttributeValues={
+                    ':v': 1,
+                },
+                ReturnValues="UPDATED_NEW"
             )
-            bookmarks_feed.append(response['Item'])
-        clean(bookmarks_feed)
-    return Response(json.dumps({"found": bookmarks_feed}), status=200, mimetype='application/json')
+        else:
+            response_two = users_table.update_item(
+                Key = {'userId': email},
+                UpdateExpression="SET ml_two.#a = :L",
+                ExpressionAttributeNames={
+                    '#a': str(article_id),
+                },
+                ExpressionAttributeValues={
+                    ':L': [0,0,0,1],
+                },
+                ReturnValues="UPDATED_NEW"
+            )
+    return Response(json.dumps({"status": response}), status=200, mimetype='application/json')
 
 @app.route("/user/updateLikes", methods=['PUT'])
 def update_likes():
@@ -420,6 +432,195 @@ def update_dislikes():
                 ReturnValues="UPDATED_NEW"
             )
     return Response(json.dumps({"status": response}), status=200, mimetype='application/json')
+
+
+
+## REMOVE METHODS
+
+@app.route("/user/removeBookmark", methods=["PUT"])
+def remove_bookmark():
+    access = request.headers.get('access_token')
+    refresh = request.headers.get('refresh_token')
+    _id = request.headers.get('id_token')
+    data = request.data
+    dataDict = json.loads(data)
+    article_id = dataDict.get('article_id')
+    valid, email = verify_user(access, refresh, _id)
+    bookmarks = None
+    bookmarks_list = []
+    # Get user bookmark list
+    # search for those ids in
+    if valid:
+        response = users_table.get_item(
+            Key={'userId': email}
+        )
+        bookmarks = response['Item']['bookmarks']
+        print(bookmarks, file=sys.stderr)
+        remove_index = int(bookmarks.index(article_id))
+        print(remove_index, file=sys.stderr)
+        response = users_table.update_item(
+            Key={'userId': email},
+            UpdateExpression="REMOVE bookmarks["+str(remove_index)+"]",
+            ReturnValues="ALL_NEW"
+        )
+        user_entry = users_table.get_item(
+            Key={'userId': email}
+        )
+        ml_two = user_entry['Item']['ml_two']
+        if article_id in ml_two:
+            response_two = users_table.update_item(
+                Key = {'userId': email},
+                UpdateExpression="SET ml_two.#a[2] = :v",
+                ExpressionAttributeNames={
+                    '#a': str(article_id),
+                },
+                ExpressionAttributeValues={
+                    ':v': 0,
+                },
+                ReturnValues="UPDATED_NEW"
+            )
+        del bookmarks[remove_index]
+        for i in bookmarks:
+            response = table.get_item(
+                Key={'id': i}
+            )
+            bookmarks_list.append(response['Item'])
+        clean(bookmarks_list)
+    return Response(json.dumps({"found": bookmarks_list}), status=200, mimetype='application/json')
+
+
+@app.route("/user/removeLike", methods=["PUT"])
+def remove_like():
+    access = request.headers.get('access_token')
+    refresh = request.headers.get('refresh_token')
+    _id = request.headers.get('id_token')
+    data = request.data
+    dataDict = json.loads(data)
+    article_id = dataDict.get('article_id')
+    valid, email = verify_user(access, refresh, _id)
+    likes = None
+    likes_list = []
+    # Get user bookmark list
+    # search for those ids in
+    if valid:
+        response = users_table.get_item(
+            Key={'userId': email}
+        )
+        likes = response['Item']['likes']
+        print(likes, file=sys.stderr)
+        remove_index = int(likes.index(article_id))
+        print(remove_index, file=sys.stderr)
+        response = users_table.update_item(
+            Key={'userId': email},
+            UpdateExpression="REMOVE likes["+str(remove_index)+"]",
+            ReturnValues="ALL_NEW"
+        )
+        user_entry = users_table.get_item(
+            Key={'userId': email}
+        )
+        ml_two = user_entry['Item']['ml_two']
+        if article_id in ml_two:
+            response_two = users_table.update_item(
+                Key = {'userId': email},
+                UpdateExpression="SET ml_two.#a[0] = :v",
+                ExpressionAttributeNames={
+                    '#a': str(article_id),
+                },
+                ExpressionAttributeValues={
+                    ':v': 0,
+                },
+                ReturnValues="UPDATED_NEW"
+            )
+        del likes[remove_index]
+        for i in likes:
+            response = table.get_item(
+                Key={'id': i}
+            )
+            likes_list.append(response['Item'])
+        clean(likes_list)
+    print("NEW NUM LIKES:", len(likes_list), file=sys.stderr)
+    return Response(json.dumps({"found": likes_list}), status=200, mimetype='application/json')
+
+
+@app.route("/user/removeDislike", methods=["PUT"])
+def remove_dislike():
+    access = request.headers.get('access_token')
+    refresh = request.headers.get('refresh_token')
+    _id = request.headers.get('id_token')
+    data = request.data
+    dataDict = json.loads(data)
+    article_id = dataDict.get('article_id')
+    valid, email = verify_user(access, refresh, _id)
+    dislikes = None
+    dislikes_list = []
+    # Get user bookmark list
+    # search for those ids in
+    if valid:
+        response = users_table.get_item(
+            Key={'userId': email}
+        )
+        dislikes = response['Item']['dislikes']
+        print(dislikes, file=sys.stderr)
+        remove_index = int(dislikes.index(article_id))
+        print(remove_index, file=sys.stderr)
+        response = users_table.update_item(
+            Key={'userId': email},
+            UpdateExpression="REMOVE dislikes["+str(remove_index)+"]",
+            ReturnValues="ALL_NEW"
+        )
+        user_entry = users_table.get_item(
+            Key={'userId': email}
+        )
+        ml_two = user_entry['Item']['ml_two']
+        if article_id in ml_two:
+            response_two = users_table.update_item(
+                Key = {'userId': email},
+                UpdateExpression="SET ml_two.#a[1] = :v",
+                ExpressionAttributeNames={
+                    '#a': str(article_id),
+                },
+                ExpressionAttributeValues={
+                    ':v': 0,
+                },
+                ReturnValues="UPDATED_NEW"
+            )
+        del dislikes[remove_index]
+        for i in dislikes:
+            response = table.get_item(
+                Key={'id': i}
+            )
+            dislikes_list.append(response['Item'])
+        clean(dislikes_list)
+    return Response(json.dumps({"found": dislikes_list}), status=200, mimetype='application/json')
+
+
+
+## GET METHODS
+
+@app.route("/user/bookmarks", methods=['GET'])
+def get_user_bookmarks():
+    access = request.headers.get('access_token')
+    refresh = request.headers.get('refresh_token')
+    _id = request.headers.get('id_token')
+    valid, email = verify_user(access, refresh, _id)
+    bookmarks = None
+    bookmarks_feed = []
+    # Get user bookmark list
+    # search for those ids in
+    if valid:
+        response = users_table.get_item(
+            Key={'userId': email}
+        )
+        bookmarks = response['Item']['bookmarks']
+        for i in bookmarks:
+            response = table.get_item(
+                Key={'id': i}
+            )
+            bookmarks_feed.append(response['Item'])
+        clean(bookmarks_feed)
+    return Response(json.dumps({"found": bookmarks_feed}), status=200, mimetype='application/json')
+
+
 @app.route("/user/history", methods=['GET'])
 def get_user_history():
     access = request.headers.get('access_token')
@@ -443,7 +644,6 @@ def get_user_history():
         clean(history_feed)
     return Response(json.dumps({"found": history_feed}), status=200, mimetype='application/json')
 
-
 @app.route("/user/likes", methods=['GET'])
 def get_user_likes():
     access = request.headers.get('access_token')
@@ -465,7 +665,6 @@ def get_user_likes():
             )
             likes_list.append(response['Item'])
     return Response(json.dumps({"found": likes_list}), status=200, mimetype='application/json')
-
 
 @app.route("/user/dislikes", methods=['GET'])
 def get_user_dislikes():
@@ -491,8 +690,8 @@ def get_user_dislikes():
 
 
 if __name__ == "__main__":
-    # fetch_related()
+    #fetch_related()
     # 0.0.0.0 cause public and shit
     app.run(host='0.0.0.0', debug=True)
-
+    
     # get_syset_info(get_sysets_id('elon musk')
