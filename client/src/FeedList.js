@@ -6,6 +6,7 @@ import ListItem from "@material-ui/core/ListItem";
 import React, { Component } from "react";
 import { connect } from "react-redux";
 import NewsCard from "./containers/NewsCard";
+import SideCard from './containers/components/SideCard/SideCard';
 const drawerWidth = 240;
 
 const styles = theme => ({
@@ -97,6 +98,7 @@ class FeedList extends Component {
             );
           }, this)}
         </List>
+          })}
       </div>
     );
   }

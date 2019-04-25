@@ -8,8 +8,6 @@ import json
 #nltk.download('wordnet')
 import re
 from nltk.corpus import stopwords 
-#from nltk.tokenize import word_tokenize, sent_tokenize 
-#from nltk.stem import WordNetLemmatizer
 import math
 from ast import literal_eval
 
@@ -17,28 +15,9 @@ with open('../server/constants.json') as f:
     CONSTANTS = json.load(f)
 
 db = boto3.resource('dynamodb', aws_access_key_id=CONSTANTS['aws_access_key_id'],
-    aws_secret_access_key=CONSTANTS['aws_secret_key_id'])
+    aws_secret_access_key=CONSTANTS['aws_secret_key_id'], region_name='us-east-1')
 table = db.Table('NewsHashed')
 
-response = table.scan(Limit=200)
-#print(len(response['Items'][0]))
-df_dict = {}
-
-for k,v in enumerate(response['Items']):
-    index = str(k)
-    df_dict[index] = v
-
-#print(response)
-#print(df_dict)
-
-#df = pd.DataFrame(data=response['Items'][0], index=[0])
-#df = pd.Series(response['Items']).to_frame()
-df = pd.DataFrame.from_dict(df_dict, orient='index')
-#print(df.head())
-#print(df.shape)
-
-
-#lemmatizer = WordNetLemmatizer()
 stopwords = nltk.corpus.stopwords.words('english')
 
 
@@ -50,7 +29,6 @@ from sklearn.feature_extraction.text import TfidfTransformer
 
 def pre_process(text):
     
-    # lowercase
     text=text.lower()
     
     #remove tags
@@ -79,147 +57,113 @@ def extract_topn_from_vector(feature_names, sorted_items, topn=10):
         results[feature_vals[idx]] = score_vals[idx]
 
     return results
-'''
-df_idf = pd.read_csv('../data/NewsHashed.csv',sep=',')
-#print("Schema:\n\n", df_idf.dtypes)
-#print("Number of questions, columns=", df_idf.shape)
+
+######################################################################################
+# This section works with data pulled from scan of DynamoDB table
+# A dataframe is created out of NewsHashed table, keywords are found using 
+# article title and description, then a new keywords column is added to dataframe
+# that stores a list of the keywords per article
 
 
-df_idf['text'] = df_idf['name'] + df_idf['description']
-df_idf['text'] = df_idf['text'].apply(lambda x:pre_process(x))
+# function that takes in the NewsHashed dataframe, finds keywords using TF-IDF,
+# then returns a new dataframe with keywords column
+def makeKeywordColumn(dataframe):
+    df = dataframe
+    stopwords = nltk.corpus.stopwords.words('english')
 
-#print(df_idf['text'][2])
+    df['text'] = df['name'] + ' ' + df['description']
+    df['text'] = df['text'].apply(lambda x:pre_process(x))
 
-docs = df_idf['text'].tolist()
-cv = CountVectorizer(max_df=0.85,stop_words=stopwords)
-word_count_vector = cv.fit_transform(docs)
-#print(list(cv.vocabulary_.keys())[:10])
+    docs = df['text'].tolist()
 
-tfidf_transformer = TfidfTransformer(smooth_idf=True,use_idf=True)
-tfidf_transformer.fit(word_count_vector)
+    cv = CountVectorizer(max_df=0.85, stop_words=stopwords)
+    word_count_vector = cv.fit_transform(docs)
 
-feature_names = cv.get_feature_names()
-doc = docs[3]
-tf_idf_vector = tfidf_transformer.transform(cv.transform([doc]))
-sorted_items = sort_coo(tf_idf_vector.tocoo())
-doc3_keywords = extract_topn_from_vector(feature_names,sorted_items,10)
-'''
+    tfidf_transformer = TfidfTransformer(smooth_idf=True,use_idf=True)
+    tfidf_transformer.fit(word_count_vector)
 
-df['text'] = df['name'] + ' ' + df['description']
-df['text'] = df['text'].apply(lambda x:pre_process(x))
+    feature_names = cv.get_feature_names()
 
-docs = df['text'].tolist()
-#print(docs)
-
-cv = CountVectorizer(max_df=0.85, stop_words=stopwords)
-word_count_vector = cv.fit_transform(docs)
-
-tfidf_transformer = TfidfTransformer(smooth_idf=True,use_idf=True)
-tfidf_transformer.fit(word_count_vector)
-
-feature_names = cv.get_feature_names()
-
-doc = docs[2]
-tf_idf_vector = tfidf_transformer.transform(cv.transform([doc]))
-sorted_items = sort_coo(tf_idf_vector.tocoo())
-doc3_keywords = extract_topn_from_vector(feature_names,sorted_items,10)
-
-#for k in doc3_keywords:
- #   print(k, doc3_keywords[k])
-
-
-df['keywords'] = np.empty((len(df), 0)).tolist()
-
-keyword_dict = {}
-for i in range(len(docs)):
-    tf_idf_vector = tfidf_transformer.transform(cv.transform([docs[i]]))
+    doc = docs[2]
+    tf_idf_vector = tfidf_transformer.transform(cv.transform([doc]))
     sorted_items = sort_coo(tf_idf_vector.tocoo())
-    kws = extract_topn_from_vector(feature_names,sorted_items,10)
-    keyword_dict[i] = kws
-    kw_list = []
-    for k in kws:
-        #print(k)
-        kw_list.append(k)
-    df.at[str(i), 'keywords'] = kw_list
+    doc3_keywords = extract_topn_from_vector(feature_names,sorted_items,10)
 
-df.drop(columns=['text'], inplace=True)
+    df['keywords'] = np.empty((len(df), 0)).tolist()
 
-#print(df.iloc[3]['keywords'])
-#print(df.shape)
+    print(len(docs))
+
+    keyword_dict = {}
+    for i in range(len(docs)):
+        tf_idf_vector = tfidf_transformer.transform(cv.transform([docs[i]]))
+        sorted_items = sort_coo(tf_idf_vector.tocoo())
+        kws = extract_topn_from_vector(feature_names,sorted_items,10)
+        keyword_dict[i] = kws
+        kw_list = []
+        for k in kws:
+            kw_list.append(k)
+        try:
+            df.at[i, 'keywords'] = kw_list
+        except Exception as e:
+            print(e)
+            # try:
+            #     df.at[i, 'keywords'] = kw_list
+            # except Exception as e1:
+            #     print(e1)
+
+    df.drop(columns=['text'], inplace=True)
+
+    return df
+
+
+##################################################
+# this gets items from NewsHashed table, turns it into
+# dataframe, which then gets passed to makeKeywordsColumn
+# function to make keywords column, which then gets used later
+# to make related articles column
+
+'''
+response = table.scan(Limit=200)
+df_dict = {}
+
+for k,v in enumerate(response['Items']):
+    index = str(k)
+    df_dict[index] = v
+print(df_dict)
+
+df = pd.DataFrame.from_dict(df_dict, orient='index')
+df = makeKeywordColumn(df)
 
 cols = df.columns.tolist()
-#print(cols)
 
 new_dict = df.set_index('id').T.to_dict('list')
 new_dict = pd.Series(df.keywords.values,index=df.id).to_dict()
-#print(new_dict)
+'''
+
+
+#df_idf.to_csv('keywordsNewsHashed.csv', sep=',', index=False)
 
 ##########################################################################################
+# This section gets the NewsHashed csv, does the dataframe and keyword column stuff,
+# then makes a new csv file with the keyword column added in
+
 '''
 df_idf = pd.read_csv('./NewsHashed.csv', sep=',')
-#print(df2.head())
+df_idf = makeKeywordColumn(df_idf)
+df_idf.to_csv('keywordsNewsHashed.csv', sep=',', index=False)
+'''
 
-df_idf['text'] = df_idf['name'] + " " + df_idf['description']
-df_idf['text'] = df_idf['text'].apply(lambda x:pre_process(x))
 
-#print(df_idf['text'][2])
+###########################################
+# This section reads in the dataframe containing a keywords
+# column, loops throught all the rows per article, and finds
+# articles that contain the same keyword and stores the related 
+# articles in a list. The resulting dictionary can then 
+# be used too update items in the DynamoDB table
 
-docs = df_idf['text'].tolist()
-cv = CountVectorizer(max_df=0.85,stop_words=stopwords)
-word_count_vector = cv.fit_transform(docs)
-#print(list(cv.vocabulary_.keys())[:10])
-
-tfidf_transformer = TfidfTransformer(smooth_idf=True,use_idf=True)
-tfidf_transformer.fit(word_count_vector)
-
-feature_names = cv.get_feature_names()
-doc = docs[3]
-tf_idf_vector = tfidf_transformer.transform(cv.transform([doc]))
-sorted_items = sort_coo(tf_idf_vector.tocoo())
-doc3_keywords = extract_topn_from_vector(feature_names,sorted_items,10)
-
-df_idf['keywords'] = np.empty((len(df_idf), 0)).tolist()
-#print(df_idf.iloc[3]['keywords'])
-print(len(docs))
-
-keyword_dict = {}
-for i in range(len(docs)):
-    tf_idf_vector = tfidf_transformer.transform(cv.transform([docs[i]]))
-    sorted_items = sort_coo(tf_idf_vector.tocoo())
-    kws = extract_topn_from_vector(feature_names,sorted_items,10)
-    keyword_dict[i] = kws
-    kw_list = []
-    for k in kws:
-        kw_list.append(k)
-    df_idf.at[i, 'keywords'] = kw_list
-
-df_idf.drop(columns=['text'], inplace=True)
-df_idf.to_csv('updatedNewsHashed.csv', sep=',', index=False)
-print(df_idf.iloc[3])
 '''
 df_u = pd.read_csv('./updatedNewsHashed.csv',sep=',')
-#df_u = df_u[:100]
-'''
-related = {}
-rel = []
-rel_bool = False
-for row in df_u.itertuples():
-    rel_bool = False
-    for k in new_dict:
-        rel = []
-        for kw in row.keywords:
-            #rel = []
-            if kw in new_dict[k]:
-                related[k] = rel.append(row.id)
-                rel_bool = True
-                break
-        if rel_bool == True:
-            break
-
-print(related)
-'''
-#for row in df_u.itertuples():
- #   print(row)
+df_u = df_u[:100]
 
 related = {}
 ids = []
@@ -237,10 +181,10 @@ for k in new_dict:
                 break
     if is_related == True:
         related[k] = ids
-#print(related)
+print(related)
+'''
 
-
-
+'''
 for k in related:
     resp = table.update_item(
         Key={
@@ -254,7 +198,7 @@ for k in related:
     )
 print("UpdatedItem successful")
 ###################################################################################
-
+'''
 '''
 for k in new_dict:
     resp = table.update_item(
@@ -269,5 +213,5 @@ for k in new_dict:
     )
 '''
 
-print("UpdatedItem succeeded:")
+#print("UpdatedItem succeeded:")
 #print(json.dumps(response,index=4,cls=DecimalEncoder))

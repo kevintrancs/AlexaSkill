@@ -33,6 +33,8 @@ export const ADD_DISLIKES = "ADD_DISLIKES";
 export const REMOVE_BOOKMARKS = "REMOVE_BOOKMARKS";
 export const REMOVE_LIKES = "REMOVE_LIKES";
 export const REMOVE_DISLIKES = "REMOVE_DISLIKES";
+export const READ_ARTICLE = "READ_ARTICLE";
+export const COLLAB_FILTER = "COLLAB_FILTER";
 
 const headers = {
   "Access-Control-Allow-Origin": "*",
@@ -40,6 +42,12 @@ const headers = {
   Accept: "application/json"
 };
 
+export const collabFilter = json => ({
+  type: COLLAB_FILTER
+});
+export const readArticle = json => ({
+  type: READ_ARTICLE
+});
 export const storeEvent = json => ({
   type: STORE_EVENT
 });
@@ -474,11 +482,59 @@ export function fetchSignUp(email, password) {
   };
 }
 
+export function fetchReadArticle(access, id, refresh, article_id) {
+  return function(dispatch) {
+    var cust_headers = headers;
+    cust_headers["access_token"] = access;
+    cust_headers["id_token"] = id;
+    cust_headers["refresh_token"] = refresh;
+    return fetch("http://localhost:5000/user/readArticle", {
+      method: "PUT",
+      headers: cust_headers,
+      body: JSON.stringify({ article_id: article_id})
+    })
+      .then(results => results.json())
+      .catch(err => {
+        return Promise.reject();
+      })
+      .then(json => {
+        dispatch(readArticle(json.status));
+      })
+      .catch(err => {
+        return Promise.reject();
+      });
+  };
+}
+
+export function fetchCollabFilter(access, id, refresh, article_id) {
+  return function(dispatch) {
+    var cust_headers = headers;
+    cust_headers["access_token"] = access;
+    cust_headers["id_token"] = id;
+    cust_headers["refresh_token"] = refresh;
+    return fetch("http://localhost:5000/user/collabFilter", {
+      method: "PUT",
+      headers: cust_headers,
+      body: JSON.stringify({ article_id: article_id})
+    })
+      .then(results => results.json())
+      .catch(err => {
+        return Promise.reject();
+      })
+      .then(json => {
+        dispatch(collabFilter(json.found));
+      })
+      .catch(err => {
+        return Promise.reject();
+      });
+  };
+}
+
 export function fetchStoreEvents(access, id, refresh, dict) {
   return function(dispatch) {
     var cust_headers = headers;
     cust_headers["access_token"] = access;
-    cust_headers["id_tokent"] = id;
+    cust_headers["id_token"] = id;
     cust_headers["refresh_token"] = refresh;
     return fetch("http://localhost:5000/user/addEvent", {
       method: "PUT",

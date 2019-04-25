@@ -26,8 +26,9 @@ import {
   fetchRemoveBookmark,
   fetchRemoveLike,
   fetchRemoveDislike,
-  fetchStoreEvents
-} from "../actions/actions";
+  fetchStoreEvents,
+  fetchReadArticle
+} from '../actions/actions'
 
 import { fetchAddBookmarks } from "../actions/actions";
 const drawerWidth = 240;
@@ -347,6 +348,12 @@ class NewsCard extends Component {
        clicked: 1,
        searchVal: 0}
     )
+    this.props.readArticle(
+      this.props.access,
+      this.props.id,
+      this.props.refresh,
+      {article_id: article_id}
+    )
     console.log(article_id);
     ReactGA.event({
       category: "Link",
@@ -481,7 +488,8 @@ const mapStateToProps = state => ({
   dislikes: state.dislikes,
   access: state.access,
   id: state.id,
-  refresh: state.refresh
+  refresh: state.refresh,
+  user_id: state.user_id
 });
 const mapDispatchToProps = {
   related: fetchRelatedArticles,
@@ -492,7 +500,8 @@ const mapDispatchToProps = {
   newDislike: fetchAddDislikes,
   removeBookmark: fetchRemoveBookmark,
   removeLike: fetchRemoveLike,
-  removeDislike: fetchRemoveDislike
+  removeDislike: fetchRemoveDislike,
+  readArticle: fetchReadArticle
 };
 
 export default compose(

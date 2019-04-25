@@ -10,7 +10,7 @@ from flask_cors import CORS
 from flask import request
 from flask import json
 from bs4 import BeautifulSoup
-from flask import Flask, Response
+from flask import Flask, Response, session, make_response, escape
 import requests
 import json
 import operator
@@ -22,6 +22,7 @@ from ast import literal_eval
 
 import new_knn
 app = Flask(__name__)
+
 CORS(app)
 
 with open('../server/constants.json') as f:
@@ -30,6 +31,13 @@ with open('../server/constants.json') as f:
 db = boto3.resource('dynamodb')
 table = db.Table('NewsHashed')
 users_table = db.Table('userData')
+events_table = db.Table('events')
+collab_table = db.Table('collab_filter')
+
+cog_client = boto3.client('cognito-idp')
+
+cookie_id = str(uuid.uuid4())
+user_id = cookie_id
 
 def get_syset_info(ids):
     terms = set()
@@ -75,7 +83,6 @@ def fetch_category():
 @app.route("/api/ml", methods=['GET'])
 def fetch_related():
     id = request.args.get('field')
-    #id = '0419d45c92fb9a205d63a7c5177cea3bce8e89f9244ae0d61eab143af0c294ad'
     if id:
         response = table.get_item(Key={'id': id})
     
@@ -95,6 +102,7 @@ def fetch_related():
 
 @app.route("/api/inital", methods=['GET'])
 def fetch_initial():
+
     # GET: Returns JSON of categories
     # Returns Array of all the ones found.
     cat_name = request.args.get('field')
@@ -153,7 +161,6 @@ def fetch_custom():
 def clean(json):
     json.sort(key=operator.itemgetter('datePublished'), reverse=True)
 
-
 @app.route("/user/login", methods=['POST'])
 def login_user():
     data = request.data
@@ -169,19 +176,22 @@ def login_user():
     }
     return Response(json.dumps(info), status=200, mimetype='application/json')
 
-
 def verify_user(access, refresh, id):
-    u = Cognito(CONSTANTS['cognito_id'], CONSTANTS['cognito_app'],
-                id_token=id, refresh_token=refresh, access_token=access)
-    if (not u.check_token() is None):
-        id_info = jwt.get_unverified_claims(id)
-        access_info = jwt.get_unverified_claims(access)
-        if id_info.get('sub') == access_info.get('username') and access_info.get('client_id') == CONSTANTS['cognito_app']:
-            return True, id_info.get('email')
-        else:
-            return False, None
-    return False, None
-
+    try:
+        u = Cognito(CONSTANTS['cognito_id'], CONSTANTS['cognito_app'],
+                    id_token=id, refresh_token=refresh, access_token=access)
+        if (not u.check_token() is None):
+            id_info = jwt.get_unverified_claims(id)
+            access_info = jwt.get_unverified_claims(access)
+            if id_info.get('sub') == access_info.get('username') and access_info.get('client_id') == CONSTANTS['cognito_app']:
+                print(id_info.get('email'))
+                return True, id_info.get('email')
+            else:
+                return False, None
+        return False, None
+    except Exception as e:
+        print(e)
+        return False, None
 
 @app.route("/user/logout", methods=['GET'])
 def logout_user():
@@ -204,6 +214,7 @@ def register_user():
     u = Cognito(CONSTANTS['cognito_id'], CONSTANTS['cognito_app'])
     u.add_base_attributes(email=_email)
     u.register(_email, _password)
+
     try:
         user = {'userId': _email, 'history': [], 'bookmarks': [], "likes": [], "dislikes": [],
                 'ml_one': " ", 'ml_two': {}, 'ml_three': " "}
@@ -212,8 +223,6 @@ def register_user():
         pass
 
     return Response(json.dumps({"status": "Successful Register"}), status=200, mimetype='application/json')
-
-
 
 
 ## ****************************** ##
@@ -230,11 +239,6 @@ def register_user():
 
 @app.route("/user/updateBookmark", methods=['PUT'])
 def update_bookmarks():
-    access = request.headers.get('access_token')
-    refresh = request.headers.get('refresh_token')
-    _id = request.headers.get('id_token')
-    data = request.data
-    dataDict = json.loads(data)
     article_id = dataDict.get('article_id')
     valid, email = verify_user(access, refresh, _id)
     if valid:
@@ -282,6 +286,181 @@ def update_bookmarks():
                 ReturnValues="UPDATED_NEW"
             )
     return Response(json.dumps({"status": response}), status=200, mimetype='application/json')
+
+@app.route("/user/addEvent", methods=['PUT'])
+def add_user_event():
+    '''
+    valid = False
+    email = ''
+    access = request.headers.get('access_token')
+    refresh = request.headers.get('refresh_token')
+    _id = request.headers.get('id_token')
+    data = request.data
+    dataDict = json.loads(data)
+
+
+    event = dataDict.get('event_dict')
+    #print(event)
+    try:
+        valid, email = verify_user(access, refresh, _id)
+
+    except Exception as e:
+        print(e)
+    
+    finally:
+        
+        if 'user_id' not in session:
+            if email != '' and email != None:
+                session['user_id'] = email
+            else:
+                session['user_id'] = cookie_id
+            print("user_id not in session uid: ", session['user_id'])
+        elif session['user_id'] != email and (email != '' or email != None):
+            session['user_id'] = email
+            print('not user_id and valid uid: ', session['user_id'])
+        elif session['user_id'] != cookie_id:
+            session['user_id'] = cookie_id
+            print('user_id != cookie_id uid: ', session['uid'])
+        else:
+            print("Session uid: ", session['user_id'])
+            pass
+
+    try:
+        event = {'user_id': str(escape(session['user_id'])), 'time': str(datetime.datetime.now()), 
+                'article': str(event['article']), 'category': str(event['category']), 'favorited': str(event['favorited']),
+                'liked': str(event['liked']), 'disliked': str(event['disliked']), 'clicked': str(event['clicked']),
+                'searchVal': str(event['searchVal'])}
+
+        article_visited = {'user_id': str(escape(session['user_id'])), 'time': str(datetime.datetime.now()),
+                           article}
+
+        response = users_table.update_item(
+            Key={'userId': email},
+            UpdateExpression="SET bookmarks = list_append(bookmarks, :i)",
+            ExpressionAttributeValues={
+                ':i': [article_id],
+            },
+            ReturnValues="UPDATED_NEW"
+        )
+        response = events_table.put_item(Item=event)
+        print("event stored")
+    except Exception as e:
+        print(e)
+        print("Error putting data into events table")
+
+    '''
+    return Response(json.dumps({"status": "Successful event store"}), status=200, mimetype='application/json')
+
+@app.route("/user/collabFilter", methods=['PUT'])
+def collab_filter():
+    email = 'supertest1@test.com'
+    '''
+    access = request.headers.get('access_token')
+    refresh = request.headers.get('refresh_token')
+    _id = request.headers.get('id_token')
+    valid, email = verify_user(access, refresh, _id)
+
+    data = request.data
+    dataDict = json.loads(data)
+    article_id = dataDict.get('article_id')
+    '''
+    valid = True
+    usersWhoRead = {}
+    if valid:
+        response = collab_table.query(
+            KeyConditionExpression=Key('user_id').eq(email)
+        )
+        for i in response['Items']:
+            for item in i['articles_read']:
+                response2 = collab_table.scan(
+                    FilterExpression=Attr('articles_read').contains(item) & Attr('user_id').ne(email)
+                )
+                #print(response2)
+                if response2['Items'] != []:
+                    result = response2['Items'][0]['articles_read']
+                    alsoRead = []
+                    for article in result:
+                        if article not in alsoRead and article != item:
+                            alsoRead.append(article)
+                    usersWhoRead[item] = alsoRead
+
+    print(usersWhoRead)
+    article_data = []
+    for k, v in usersWhoRead.items():
+        resp = table.get_item(Key={'id': rel})
+        if 'Item' in resp:
+            article_data.append(resp['Item'])
+    #print(article_data[:3])
+    #print(len(article_data))
+    return Response(json.dumps({'found': article_data}), status=200, mimetype='application/json')
+
+
+
+    #return Response(json.dumps({"status": "Successful collab event"}), status=200, mimetype='application/json')
+
+
+@app.route("/user/readArticle", methods=['PUT'])
+def read_article():
+    user_id = ''
+
+    access = request.headers.get('access_token')
+    refresh = request.headers.get('refresh_token')
+    _id = request.headers.get('id_token')
+    valid, email = verify_user(access, refresh, _id)
+    
+    try:
+        if valid:
+            resp = cog_client.initiate_auth(
+                AuthFlow='REFRESH_TOKEN',
+                AuthParameters={
+                    'REFRESH_TOKEN': refresh
+                },
+                ClientId=CONSTANTS['cognito_app']
+            )
+    
+    except Exception as e:
+        print(e)
+
+    if valid:
+        user_id = email
+    else:
+        user_id = cookie_id
+
+    data = request.data
+    dataDict = json.loads(data)
+    article_id = dataDict.get('article_id')
+    article_id = article_id['article_id']
+    print(article_id)
+
+    try:
+
+        if valid:
+            cog_client.admin_get_user(
+                UserPoolId='us-east-1_fRRMhtU84',
+                Username=user_id      
+            )
+            
+        response = collab_table.update_item (
+            Key={'user_id': user_id},
+            UpdateExpression="SET articles_read = list_append(articles_read, :i)",
+            ExpressionAttributeValues={
+                ':i': [article_id],
+            },
+            ReturnValues="UPDATED_NEW"
+        )   
+    except Exception as e:
+        print(e)
+        try:
+            response = collab_table.put_item(
+                Item={
+                    'user_id': user_id,
+                    'articles_read': [article_id]
+                }
+            )
+        except Exception as e:
+            print(e)
+    
+    return Response(json.dumps({"status": "Successful collab event"}), status=200, mimetype='application/json')
 
 @app.route("/user/updateHistory", methods=['PUT'])
 def update_history():
@@ -758,7 +937,8 @@ def get_ml_two():
 
 
 if __name__ == "__main__":
-    #fetch_related()
     # 0.0.0.0 cause public and shit
+    app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
+
     app.run(host='0.0.0.0', debug=True)
     

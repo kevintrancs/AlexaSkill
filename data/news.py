@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 with open('../server/constants.json') as f:
     CONSTANTS = json.load(f)
 
-headers = {"Ocp-Apim-Subscription-Key": CONSTANTS['azure_key']}
+headers = {"Ocp-Apim-Subscription-Key": CONSTANTS['azure_endpoint']}
 db = boto3.resource('dynamodb')
 table = db.Table('NewsHashed')
 

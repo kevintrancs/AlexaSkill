@@ -58,7 +58,8 @@ import {
   closeList,
   fetchRelatedArticles,
   fetchBookmarks,
-  fetchStoreEvents
+  fetchStoreEvents,
+  fetchCollabFilter
 } from "../actions/actions";
 import { article_id } from "./NewsCard";
 import ReactGA from "react-ga";
@@ -359,7 +360,6 @@ class Header extends Component {
     console.log("article id ", article_id);
     console.log("id: ", id);
     this.props.getRelated(article_id);
-    console.log("clicked ML tab");
   }
 
   handleMlTwo(access, id, refresh){
@@ -576,7 +576,7 @@ class Header extends Component {
                   </ListItemIcon>
                   <ListItemText inset primary="ML 2" />
                 </ListItem>
-                <ListItem button className={classes.nested}>
+                <ListItem button className={classes.nested} key={"ML3"} onClick={this.handleML3.bind(this, article_id)}>
                   <ListItemIcon>
                     <StarBorder />
                   </ListItemIcon>
@@ -611,6 +611,7 @@ const mapDispatchToProps = {
   getTopic: fetchTopicFeed,
   getRelated: fetchRelatedArticles,
   getMlTwoFeed: fetchMLTwoFeed,
+  getCollab: fetchCollabFilter,
   c: closeDrawer,
   o: openDrawer,
   loggingOut: loggingOutWorker,
