@@ -1,9 +1,12 @@
+from __future__ import print_function
 from sklearn.metrics import accuracy_score
 import pandas as pd
 import csv
 import sklearn
 from sklearn.neighbors import KNeighborsClassifier
+from sklearn.neighbors import NearestNeighbors
 from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
 import scipy
 import numpy as np
 import os
@@ -25,7 +28,7 @@ def write_json_dict(dict_input, outfile):
     with open(outfile, 'w') as json_out:
         json_out.write(json_str)
 
-def clean_input(filename):
+def clean_input_csv(filename):
     print("dealing with", filename)
     # Initialize to empty
     provider_dict = {}
@@ -51,7 +54,7 @@ def clean_input(filename):
         for row in read:
             seperated = [str(i) for i in list(row)]
             # Print check
-            print(seperated[7], seperated[8], end = '->')
+            print(seperated[7], seperated[8], end='->')
             # If we haven't seen this cat before, and it isn't mapped, give it a new slot
             if seperated[7] not in category_dict and seperated[7] not in list(category_dict.values()):
                 category_dict[seperated[7]] = len(category_dict)
@@ -76,5 +79,129 @@ def clean_input(filename):
     write_json_dict(category_dict, CATEGORY_FILE)
 
 
-if __name__ == "__main__":
-    clean_input('NewsHashed_ORIGINAL.csv')
+def read_file_csv(filename):
+    id = []
+    category = []
+    provider = []
+    dot_pos = filename.rfind('.')
+    with open(filename[:dot_pos] + "_CLEAN" + filename[dot_pos:], 'w', encoding='utf8') as infile:
+        read = csv.reader(infile, delimiter=',')
+        for row in read:
+            seperated = list(row)
+            id.append(seperated[0])
+            category.append(seperated[7])
+            provider.append(seperated[8])
+        
+    catmap = list(map(int, category))
+    provmap = list(map(int, provider))
+    x_points = [list(i) for i in zip(catmap, provmap)]
+
+
+def clean_list_catprov(inlist, n):
+    # Initialize to empty
+    provider_dict = {}
+    category_dict = {}
+    # See if we have the files already made. If we do, load them up and replace empties
+    provider_str = get_json_dict(PROVIDER_FILE)
+    category_str = get_json_dict(CATEGORY_FILE)
+    if provider_str != None:
+        provider_dict = json.loads(provider_str)
+        #print(len(provider_dict))
+        assert type(provider_dict) == dict
+    if category_str != None:
+        #print(category_str)
+        category_dict = json.loads(category_str)
+        #print(category_dict)
+        assert type(category_dict) == dict
+    
+    outlist = []
+
+    for each in inlist:
+        if each[1] not in category_dict and each[1] not in list(category_dict.values()):
+            category_dict[each[1]] = len(category_dict)
+        # If we have a slot for this cat, replace (could be newly mapped or reencountered on first run)
+        if each[1] in category_dict:
+            each[1] = category_dict[each[1]]*n
+        # Same as categories but for providers
+        if each[2] not in provider_dict and each[2] not in list(provider_dict.values()):
+            provider_dict[each[2]] = len(provider_dict)
+        if each[2] in provider_dict:
+            each[2] = provider_dict[each[2]]
+        outlist.append(each)
+    #print(outlist)
+
+    write_json_dict(provider_dict, PROVIDER_FILE)
+    write_json_dict(category_dict, CATEGORY_FILE)
+    return outlist
+
+def clean_interaction_data(user_data):
+    for each in user_data:
+        interactions = each[-1]
+        summed = 0
+        for i in range(len(interactions)):
+            if interactions[-i-1] == 1:
+                summed += 2**i
+        each[-1] = summed
+    return user_data
+
+def split_data(user_data, news_data):
+    user_ids = [i[0] for i in user_data]
+    user_points = [[i[1], i[2]] for i in user_data]
+    outcomes = [i[3] for i in user_data]
+    news_ids = [i[0] for i in news_data]
+    news_points = [[i[1], i[2]] for i in news_data]
+    return user_ids, user_points, outcomes, news_ids, news_points
+    
+
+
+def knn(xtrain, ytrain, xtest):
+    for i in range(len(xtrain)):
+        print(xtrain[i], '->', ytrain[i])
+    knn = KNeighborsClassifier(n_neighbors = 5)
+    knn.fit(xtrain, ytrain)
+    predictions = knn.predict(xtest)
+    print(len(predictions))
+    print(predictions)
+    return predictions
+
+def rfc(xtrain, ytrain, xtest):
+    #for i in range(len(xtrain)):
+        #print(xtrain[i], '->', ytrain[i])
+    clf = RandomForestClassifier( criterion="entropy")
+    clf.fit(xtrain, ytrain)
+    print(clf.feature_importances_)
+    predictions = clf.predict(xtest)
+    #print(len(predictions))
+    #print(predictions)
+    return predictions
+
+# MODE SHOULD BE "CSV" or other
+def main(user_data, news_in, input, mode):
+    if input == "CSV":
+        x = 1
+        # do nothing for now
+    else:
+        if mode == "RFC":
+            news_catprov = clean_list_catprov(news_in, 1)
+            user_catprov = clean_list_catprov(user_data, 1)
+            user_catprov_binary = clean_interaction_data(user_catprov)
+            user_ids, user_points, user_outcomes, news_ids, news_points = split_data(user_catprov_binary, news_catprov)
+            predictions = rfc(user_points, user_outcomes, news_points)
+            zipped = zip(news_ids, predictions)
+            #print(zipped, type(zipped))
+            # This line right here is why I hate python 2
+            results = list(reversed(sorted(zipped, key = lambda t: t[1])))
+            #print(results, type(results))
+            return results
+        else:
+            news_catprov = clean_list_catprov(news_in, 1)
+            user_catprov = clean_list_catprov(user_data, 1)
+            user_catprov_binary = clean_interaction_data(user_catprov)
+            user_ids, user_points, user_outcomes, news_ids, news_points = split_data(user_catprov_binary, news_catprov)
+            predictions = knn(user_points, user_outcomes, news_points)
+            zipped = zip(news_ids, predictions)
+            #print(zipped, type(zipped))
+            # This line right here is why I hate python 2
+            results = list(reversed(sorted(zipped, key = lambda t: t[1])))
+            #print(results, type(results))
+            return results

@@ -1,1 +1,1 @@
-{"Entertainment": 0, "Business": 1, "Other": 2, "ScienceAndTechnology": 3, "US": 4, "Sports": 5, "Health": 6, "World": 7, "Politics": 8}
+{"Business": 0, "Entertainment": 10, "US": 2, "Sports": 8, "Other": 4, "Health": 4, "World": 6, "Politics": 3, "ScienceAndTechnology": 6}
