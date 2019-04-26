@@ -78,6 +78,8 @@ class FeedList extends Component {
   render() {
     const { classes, theme, } = this.props;
     console.log(this.props.items);
+    // New line, make feed scroll to top
+    window.scrollTo(0,0);
     return (
       <div>
         <List className={classNames(classes.layout)}>
