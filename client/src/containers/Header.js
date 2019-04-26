@@ -253,18 +253,25 @@ class Header extends Component {
   }
 
   handleCategoryChange(category, index) {
-    this.props.getBookmarks(
-      this.props.access,
-      this.props.id,
-      this.props.refresh
-    );
-    this.props.getLikes(this.props.access, this.props.id, this.props.refresh);
-    this.props.getDislikes(
-      this.props.access,
-      this.props.id,
-      this.props.refresh
-    );
-    this.setState({ selectedIndex: index });
+    if(this.props.access !== "null" && this.props.access !== null){
+      if(this.props.bookmarks === []){
+        this.props.getBookmarks(
+          this.props.access,
+          this.props.id,
+          this.props.refresh
+        );
+        this.props.getLikes(
+          this.props.access, 
+          this.props.id, 
+          this.props.refresh
+        );
+        this.props.getDislikes(
+          this.props.access,
+          this.props.id,
+          this.props.refresh
+        );
+      }
+    }
     if (category === "Trending" || category === "Breaking") {
       this.props.getInit();
       ReactGA.event({
@@ -272,8 +279,9 @@ class Header extends Component {
         action: "Trending/Breaking",
         value: index
       });
+      this.setState({ selectedIndex: index });
     } else if (category === "Bookmarks") {
-      if (this.props.access !== "null" || this.props.access != null) {
+      if ((this.props.access !== "null" && this.props.access !== null)) {
         this.props.getBookmarks(
           this.props.access,
           this.props.id,
@@ -289,16 +297,21 @@ class Header extends Component {
           category: "Bookmarks",
           action: "Go to bookmarks"
         });
-      } else this.props.getInit();
+        this.setState({ selectedIndex: index });
+
+      } else{
+        alert("Can't access feed, not logged in");
+      }
     } else if (category === "History") {
-      if (this.props.access !== "null" || this.props.access !== null) {
+      if ((this.props.access !== "null" && this.props.access !== null)) {
         this.props.getHistory(
           this.props.access,
           this.props.id,
           this.props.refresh
         );
+        this.setState({ selectedIndex: index });
       } else {
-        this.props.getInit();
+        alert("Can't access feed, not logged in");
       }
     } else {
       this.props.getTopic(category);
@@ -308,6 +321,8 @@ class Header extends Component {
         label: category,
         value: index
       });
+      this.setState({ selectedIndex: index });
+
     }
   };
     // temp fix
@@ -348,6 +363,7 @@ class Header extends Component {
   handleLogoutClick = async event => {
     localStorage.clear();
     this.props.loggingOut();
+    this.handleCategoryChange("Breaking", 0);
   };
 
   render(){
@@ -365,6 +381,10 @@ class Header extends Component {
       <Bookmark />,
       <Settings />
     ];
+
+    const homeForward = () =>{
+      this.handleCategoryChange("Breaking", 0);
+    }
 
     return (
       <div>
@@ -388,6 +408,7 @@ class Header extends Component {
               color="inherit"
               noWrap
               component={Link}
+              onClick={() => homeForward()}
               to="/"
             >
               CleverNews
@@ -458,7 +479,7 @@ class Header extends Component {
           }}
         >
           <div className={classes.drawerHeader}>
-            <img className={classes.logo} src="/clever.png" />
+            <img className={classes.logo} onClick={() => homeForward()} src="/clever.png" />
             <IconButton onClick={this.handleDrawerClose}>
               <ChevronLeftIcon />
             </IconButton>
@@ -548,7 +569,8 @@ const mapStateToProps = state => ({
   access: state.access,
   id: state.id,
   refresh: state.refresh,
-  bookmarks: state.bookmarks
+  bookmarks: state.bookmarks,
+  loggedIn: state.loggedIn
 });
 
 const mapDispatchToProps = {
