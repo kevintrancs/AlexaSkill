@@ -715,15 +715,14 @@ def fetch_mini():
             return Response(json.dumps({'found': response['Items']}), status=200, mimetype='application/json')
 
 @app.route("/user/mltwo", methods=['GET'])
-def get_ml_two(access, refresh, _id):
-    '''
+def get_ml_two():
     access = request.headers.get('access_token')
     refresh = request.headers.get('refresh_token')
     _id = request.headers.get('id_token')
-    '''
     valid, email = verify_user(access, refresh, _id)
-    bookmarks = None
-    bookmarks_feed = []
+    
+    ml_two_ids = None
+    ml_two_feed = []
     # Get user bookmark list
     # search for those ids in
     if valid:
@@ -767,8 +766,9 @@ def get_ml_two(access, refresh, _id):
             response = table.get_item(
                 Key={'id': item[0]}
             )
+            ml_two_feed.append(response['Item'])
             print(str(response['Item']['category'].encode('utf-8')), str(response['Item']['provider'].encode('utf-8')), str(response['Item']['name'].encode('utf-8')), file=sys.stderr)
-    return Response(json.dumps({"found": bookmarks_feed}), status=200, mimetype='application/json')
+    return Response(json.dumps({"found": ml_two_feed}), status=200, mimetype='application/json')
 
 
 
