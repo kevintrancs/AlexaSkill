@@ -19,6 +19,8 @@ from data.news import headers, pull
 from warrant import Cognito
 from jose import jwt, jwk
 from ast import literal_eval
+
+import new_knn
 app = Flask(__name__)
 CORS(app)
 
@@ -77,7 +79,7 @@ def fetch_related():
     #id = '0419d45c92fb9a205d63a7c5177cea3bce8e89f9244ae0d61eab143af0c294ad'
     if id:
         response = table.get_item(Key={'id': id})
-        print(response)
+        # print(response)
     
     else:
         return Response(json.dumps({'found': []}), status=204, mimetype='application/json')
@@ -215,7 +217,7 @@ def register_user():
 
 ### ALRIGHT LADIES AND GENTLEMEN BIG ASTERISK ON THIS SECTION HERE
 ### FLAGS FOR INTERACTION IN ML_TWO ARE IN THE ORDER AS FOLLOWS
-### [ LIKE, DISLIKE, BOOKMARKS, ARTICLE_CLICKED ]
+### [ LIKE, BOOKMARK, CLICK, DISLIKE ]
 ### EX: ARTICLE = [1,0,1,1] MEANS LIKED, BOOKMARKED, AND CLICKED
 
 ## ****************************** ##
@@ -255,7 +257,7 @@ def update_bookmarks():
         if article_id in ml_two:
             response_two = users_table.update_item(
                 Key = {'userId': email},
-                UpdateExpression="SET ml_two.#a[2] = :v",
+                UpdateExpression="SET ml_two.#a[1] = :v",
                 ExpressionAttributeNames={
                     '#a': str(article_id),
                 },
@@ -272,12 +274,10 @@ def update_bookmarks():
                     '#a': str(article_id),
                 },
                 ExpressionAttributeValues={
-                    ':L': [0,0,1,0],
+                    ':L': [0,1,0,0],
                 },
                 ReturnValues="UPDATED_NEW"
             )
-        for each in ml_two:
-            print(each, ml_two[each], file=sys.stderr)
     return Response(json.dumps({"status": response}), status=200, mimetype='application/json')
 
 @app.route("/user/updateHistory", methods=['PUT'])
@@ -308,7 +308,7 @@ def update_history():
         if article_id in ml_two:
             response_two = users_table.update_item(
                 Key = {'userId': email},
-                UpdateExpression="SET ml_two.#a[3] = :v",
+                UpdateExpression="SET ml_two.#a[2] = :v",
                 ExpressionAttributeNames={
                     '#a': str(article_id),
                 },
@@ -325,10 +325,12 @@ def update_history():
                     '#a': str(article_id),
                 },
                 ExpressionAttributeValues={
-                    ':L': [0,0,0,1],
+                    ':L': [0,0,1,0],
                 },
                 ReturnValues="UPDATED_NEW"
             )
+
+
     return Response(json.dumps({"status": response}), status=200, mimetype='application/json')
 
 @app.route("/user/updateLikes", methods=['PUT'])
@@ -410,7 +412,7 @@ def update_dislikes():
         if article_id in ml_two:
             response_two = users_table.update_item(
                 Key = {'userId': email},
-                UpdateExpression="SET ml_two.#a[1] = :v",
+                UpdateExpression="SET ml_two.#a[3] = :v",
                 ExpressionAttributeNames={
                     '#a': str(article_id),
                 },
@@ -427,7 +429,7 @@ def update_dislikes():
                     '#a': str(article_id),
                 },
                 ExpressionAttributeValues={
-                    ':L': [0,1,0,0],
+                    ':L': [0,0,0,1],
                 },
                 ReturnValues="UPDATED_NEW"
             )
@@ -470,7 +472,7 @@ def remove_bookmark():
         if article_id in ml_two:
             response_two = users_table.update_item(
                 Key = {'userId': email},
-                UpdateExpression="SET ml_two.#a[2] = :v",
+                UpdateExpression="SET ml_two.#a[1] = :v",
                 ExpressionAttributeNames={
                     '#a': str(article_id),
                 },
@@ -575,7 +577,7 @@ def remove_dislike():
         if article_id in ml_two:
             response_two = users_table.update_item(
                 Key = {'userId': email},
-                UpdateExpression="SET ml_two.#a[1] = :v",
+                UpdateExpression="SET ml_two.#a[3] = :v",
                 ExpressionAttributeNames={
                     '#a': str(article_id),
                 },
@@ -607,6 +609,7 @@ def get_user_bookmarks():
     bookmarks_feed = []
     # Get user bookmark list
     # search for those ids in
+    # get_ml_two(access, refresh, _id)
     if valid:
         response = users_table.get_item(
             Key={'userId': email}
@@ -687,6 +690,86 @@ def get_user_dislikes():
             )
             dislikes_list.append(response['Item'])
     return Response(json.dumps({"found": dislikes_list}), status=200, mimetype='application/json')
+
+def fetch_mini():
+    # Explicit trendingtopics thing. Literally the only difference
+    search_query = "trendingtopics"
+    if search_query:
+        response = table.scan(FilterExpression=Attr(
+            'query_use').contains(search_query))
+    else:
+        return Response(json.dumps({'found': []}), status=204, mimetype='application/json')
+
+    if response['Count'] > 0:
+        clean(response['Items'])
+        return Response(json.dumps({'found': response['Items']}), status=200, mimetype='application/json')
+    else:
+        response = table.scan(FilterExpression=Attr(
+            'name').contains(search_query))
+        if response['Count'] > 0:
+            return Response(json.dumps({'found': response['Items']}), status=200, mimetype='application/json')
+        else:
+            pull(search_query)
+            response = table.scan(FilterExpression=Attr(
+                'query_use').eq(search_query))
+            return Response(json.dumps({'found': response['Items']}), status=200, mimetype='application/json')
+
+@app.route("/user/mltwo", methods=['GET'])
+def get_ml_two(access, refresh, _id):
+    '''
+    access = request.headers.get('access_token')
+    refresh = request.headers.get('refresh_token')
+    _id = request.headers.get('id_token')
+    '''
+    valid, email = verify_user(access, refresh, _id)
+    bookmarks = None
+    bookmarks_feed = []
+    # Get user bookmark list
+    # search for those ids in
+    if valid:
+        response = users_table.get_item(
+            Key={'userId': email}
+        )
+        ml_two = response['Item']['ml_two']
+        for each in ml_two:
+            ml_two[each] = [int(i) for i in ml_two[each]]
+        ml_two = json.loads(json.dumps(ml_two))
+        #print(ml_two, file=sys.stderr)
+
+        real_data = []
+        for i in ml_two:
+            response = table.get_item(
+                Key={'id': i}
+            )
+            real_data.append([i, response['Item']['category'], response['Item']['provider'], ml_two[i]])
+        #for item in real_data:
+        #    print(item, file=sys.stderr)
+
+
+        all_news = table.scan()
+        all_news = all_news['Items']
+        all_news.sort(key=operator.itemgetter('datePublished'), reverse=True)
+        all_news = all_news[:3000]
+        #print(len(all_news), all_news, file=sys.stderr)
+        news_condensed = []
+        for each in all_news:
+            news_condensed.append([each['id'], each['category'], each['provider']])
+        #print(len(news_condensed), news_condensed, file=sys.stderr)
+        '''
+        all_news_items = all_news['found']
+        for each in all_news_items:
+            print(each, file=sys.stderr)'''
+
+        results = new_knn.main(real_data, news_condensed, "JSON", "RFC")[:50]
+        #print(results)
+        result_list = []
+        for item in results:
+            response = table.get_item(
+                Key={'id': item[0]}
+            )
+            print(str(response['Item']['category'].encode('utf-8')), str(response['Item']['provider'].encode('utf-8')), str(response['Item']['name'].encode('utf-8')), file=sys.stderr)
+    return Response(json.dumps({"found": bookmarks_feed}), status=200, mimetype='application/json')
+
 
 
 if __name__ == "__main__":
