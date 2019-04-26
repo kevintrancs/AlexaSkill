@@ -253,6 +253,25 @@ export function fetchSearchFeed(value) {
   };
 }
 
+export function fetchMLTwoFeed(access, id, refresh){
+  return function(dispatch){
+    dispatch(requestFeed());
+      var cust_headers = headers;
+      cust_headers["access_token"] = access;
+      cust_headers["id_token"] = id;
+      cust_headers["refresh_token"] = refresh;
+
+      return fetch("http://localhost:5000/user/mltwo", {
+        method: "GET",
+        headers: cust_headers
+      })      
+      .then(results => results.json())
+      .then(json => {
+        dispatch(receiveMlFeed(json.found));
+      });
+  }
+}
+
 export function fetchTopicFeed(category) {
   return function(dispatch) {
     dispatch(requestFeed());

@@ -56,7 +56,8 @@ import {
   fetchLikes,
   fetchDislikes,
   fetchBookmarksFeed,
-  fetchHistory
+  fetchHistory,
+  fetchMLTwoFeed
 } from "../actions/actions";
 import { article_id } from "./NewsCard";
 import ReactGA from "react-ga";
@@ -327,13 +328,17 @@ class Header extends Component {
   };
     // temp fix
 
-  handleMlChange(id) {
+  handleMlOne(id) {
     //this.setState({ selectedIndex: index });
     //let aid = this.props.storeArticleId
     console.log("article id ", article_id);
     console.log("id: ", id);
     this.props.getRelated(article_id);
     console.log("clicked ML tab");
+  }
+
+  handleMlTwo(access, id, refresh){
+    this.props.getMlTwoFeed(access, id, refresh);
   }
 
   handleDrawerOpen = () => {
@@ -531,14 +536,19 @@ class Header extends Component {
                   button
                   className={classes.nested}
                   key={"ML1"}
-                  onClick={this.handleMlChange.bind(this, article_id)}
+                  onClick={this.handleMlOne.bind(this, article_id)}
                 >
                   <ListItemIcon>
                     <StarBorder />
                   </ListItemIcon>
                   <ListItemText inset primary="ML 1" />
                 </ListItem>
-                <ListItem button className={classes.nested}>
+                <ListItem
+                  button
+                  className={classes.nested}
+                  key={"ML2"}
+                  onClick={this.handleMlTwo.bind(this, this.props.access, this.props.id, this.props.refresh)}
+                >
                   <ListItemIcon>
                     <StarBorder />
                   </ListItemIcon>
@@ -578,6 +588,7 @@ const mapDispatchToProps = {
   getSearch: fetchSearchFeed,
   getTopic: fetchTopicFeed,
   getRelated: fetchRelatedArticles,
+  getMlTwoFeed: fetchMLTwoFeed,
   c: closeDrawer,
   o: openDrawer,
   loggingOut: loggingOutWorker,
