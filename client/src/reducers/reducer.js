@@ -51,7 +51,7 @@ const startState = {
   email: localStorage.getItem("email"),
   password: "",
   passwordConfirm: "",
-  chooseSettings: false
+  chooseSettings: false,
 };
 
 const reducer = (state = startState, action) => {
@@ -85,6 +85,7 @@ const reducer = (state = startState, action) => {
     case RECEIVE_LOG_IN:
       return {
         ...state,
+        loggedIn: true,
         access: action.json.access_token,
         refresh: action.json.access_token,
         id: action.json.id_token
@@ -98,6 +99,7 @@ const reducer = (state = startState, action) => {
     case REQUEST_LOG_OUT:
       return {
         ...state,
+        loggedIn: false,
         access: null,
         refresh: null,
         id: null

@@ -15,6 +15,8 @@ import ThumbDownOutlinedIcon from "@material-ui/icons/ThumbDownOutlined";
 import ThumbDownIcon from "@material-ui/icons/ThumbDown";
 import StarBorderOutlinedIcon from "@material-ui/icons/StarBorderOutlined";
 import StarIcon from "@material-ui/icons/Star";
+import BookmarkBorderOutlinedIcon from "@material-ui/icons/Bookmark";
+import BookmarkBorderIcon from "@material-ui/icons/BookmarkBorderOutlined";
 import ReactGA from "react-ga";
 import {
   fetchRelatedArticles,
@@ -249,7 +251,7 @@ class NewsCard extends Component {
         category: "Like button",
         action: "Liked article",
         value: 1
-      });*/
+      });
     }
   }
   dislikeButtonClicked(article) {
@@ -442,7 +444,7 @@ class NewsCard extends Component {
                 />
               )}
               {this.state.favorited ? (
-                <StarIcon
+                <BookmarkBorderOutlinedIcon
                   className={classes.likeIcon}
                   onClick={this.favoriteButtonClicked.bind(
                     this,
@@ -452,7 +454,7 @@ class NewsCard extends Component {
                   style={{ float: "left" }}
                 />
               ) : (
-                <StarBorderOutlinedIcon
+                <BookmarkBorderIcon
                   className={classes.likeIcon}
                   onClick={this.favoriteButtonClicked.bind(
                     this,
