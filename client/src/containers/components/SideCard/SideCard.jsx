@@ -12,6 +12,8 @@ import ListSubheader from '@material-ui/core/ListSubheader';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import Typography from '@material-ui/core/Typography';
+import ListItemText from '@material-ui/core/ListItemText';
+import Grid from '@material-ui/core/Grid';
 import { fetchCollabFilter } from '../../../actions/actions';
 
 const styles = theme => ({
@@ -98,23 +100,30 @@ class SingleLineGridList extends Component {
     this.props.getCollab();
   }
 
-
-
   render() {
     const { classes } = this.props;
     const section = this.props.items.map(separateItems);
   
     return (
       <div>
-        <List style={{paddingTop: '100', paddingLeft: '300'}}>
+      <Grid
+        container
+        spacing={0}
+        direction="column"
+        alignItems="center"
+        justify="space-around"
+      >
+      <Typography variant='h6'>Others who read articles you read also read...</Typography>
+      <div>
+        <List>
         {section.map(item => (
           <ListItem key={item.articleRead}>
             <div className={classes.root}>
               <GridList className={classes.gridList} cols={2}>
                 {item.otherArticles.map(tile => (
                   <GridListTile key={tile.id} cols={1}>
-                    <img src={tile.thumbnail} alt={tile.name} href={tile.url} />
-                    <a href={tile.url} target="_blank">{tile.name}</a>
+                    <img src={tile.thumbnail} alt={tile.name} />
+                    <a href={tile.url}>
                     <GridListTileBar
                       title={tile.name}
                       subtitle={tile.description}
@@ -128,6 +137,7 @@ class SingleLineGridList extends Component {
                         </IconButton>
                       }
                     />
+                    </a>
                   </GridListTile>
                 ))}
               </GridList>
@@ -135,6 +145,8 @@ class SingleLineGridList extends Component {
           </ListItem>
         ))}
         </List>
+      </div>
+      </Grid>
       </div>
     );
   }

@@ -19,6 +19,7 @@ from data.news import headers, pull
 from warrant import Cognito
 from jose import jwt, jwk
 from ast import literal_eval
+import uuid
 
 import new_knn
 app = Flask(__name__)
@@ -28,7 +29,7 @@ CORS(app)
 with open('../server/constants.json') as f:
     CONSTANTS = json.load(f)
 
-db = boto3.resource('dynamodb')
+db = boto3.resource('dynamodb', aws_access_key_id='AKIAJLS3TQL32DCXLXIA', aws_secret_access_key='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', region_name='us-east-1')
 table = db.Table('NewsHashed')
 users_table = db.Table('userData')
 events_table = db.Table('events')
@@ -320,17 +321,6 @@ def add_user_event():
                 'liked': str(event['liked']), 'disliked': str(event['disliked']), 'clicked': str(event['clicked']),
                 'searchVal': str(event['searchVal'])}
 
-        article_visited = {'user_id': str(escape(session['user_id'])), 'time': str(datetime.datetime.now()),
-                           article}
-
-        response = users_table.update_item(
-            Key={'userId': email},
-            UpdateExpression="SET bookmarks = list_append(bookmarks, :i)",
-            ExpressionAttributeValues={
-                ':i': [article_id],
-            },
-            ReturnValues="UPDATED_NEW"
-        )
         response = events_table.put_item(Item=event)
         print("event stored")
     except Exception as e:
@@ -342,14 +332,9 @@ def add_user_event():
 
 @app.route("/user/collabFilter", methods=['PUT'])
 def collab_filter():
-    
     try:
         valid, email = verify_user(access, refresh, _id)
 
-        data = request.data
-        dataDict = json.loads(data)
-        article_id = dataDict.get('article_id')
-        
         usersWhoRead = {}
         if valid:
             response = collab_table.query(
@@ -389,11 +374,14 @@ def collab_filter():
         print(article_data[:2])
         #print(len(article_data))
         return Response(json.dumps({'found': article_data}), status=200, mimetype='application/json')
-
     except Exception as e:
-        print (e):
+        print(e)
     finally:
-        return Response(json.dumps({"found": []), status=200, mimetype='application/json')
+        return Response(json.dumps({'found': []}), status=200, mimetype='application/json')
+
+
+
+    #return Response(json.dumps({"status": "Successful collab event"}), status=200, mimetype='application/json')
 
 
 @app.route("/user/readArticle", methods=['PUT'])
