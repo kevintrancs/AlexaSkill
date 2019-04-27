@@ -113,7 +113,7 @@ class SingleLineGridList extends Component {
               <GridList className={classes.gridList} cols={2}>
                 {item.otherArticles.map(tile => (
                   <GridListTile key={tile.id} cols={1}>
-                    <img src={tile.thumbnail} alt={tile.name} />
+                    <img src={tile.thumbnail} alt={tile.name} href={tile.url} />
                     <a href={tile.url} target="_blank">{tile.name}</a>
                     <GridListTileBar
                       title={tile.name}
