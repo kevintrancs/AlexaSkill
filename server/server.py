@@ -42,7 +42,6 @@ def get_syset_info(ids):
             for k, v in i['properties'].items():
                 if k == 'simpleLemma':
                     terms.add(v)
-    print(terms)
 
 
 def get_sysets_id(term):
@@ -79,21 +78,17 @@ def fetch_related():
     #id = '0419d45c92fb9a205d63a7c5177cea3bce8e89f9244ae0d61eab143af0c294ad'
     if id:
         response = table.get_item(Key={'id': id})
-        # print(response)
     
     else:
         return Response(json.dumps({'found': []}), status=204, mimetype='application/json')
     
     if response['Item']['related_ids']:
         related_ids = response['Item']['related_ids']
-        #print(related_ids)
         article_data = []
         for rel in related_ids:
             resp = table.get_item(Key={'id': rel})
             if resp['Item']:
                 article_data.append(resp['Item'])
-        #print(article_data[:3])
-        #print(len(article_data))
         return Response(json.dumps({'found': article_data}), status=200, mimetype='application/json')
     else:
        return Response(json.dumps({'found': []}), status=204, mimetype='application/json')
@@ -124,6 +119,16 @@ def fetch_custom():
     # Returns Array of all the ones found.
     # If we miss AWS search we will hit BING api search and cache the data
     search_query = request.args.get('field')
+    source = search_query.split()[0]
+    if source == "source:":
+        response = table.scan(FilterExpression=Attr(
+            'provider').contains(search_query.split()[1]))
+        if response['Count'] > 0:
+            clean(response['Items'])
+            return Response(json.dumps({'found': response['Items']}), status=200, mimetype='application/json')
+        else:
+            return Response(json.dumps({'found': []}), status=204, mimetype='application/json')
+
     if search_query:
         response = table.scan(FilterExpression=Attr(
             'query_use').contains(search_query))
@@ -155,7 +160,6 @@ def login_user():
     dataDict = json.loads(data)
     _email = dataDict.get('email')
     _password = dataDict.get('password')
-    #print(_email, _password, file=sys.stderr)
     u = Cognito(CONSTANTS['cognito_id'], CONSTANTS['cognito_app'], username=_email)
     u.authenticate(password=_password)
     info = {
@@ -173,7 +177,6 @@ def verify_user(access, refresh, id):
         id_info = jwt.get_unverified_claims(id)
         access_info = jwt.get_unverified_claims(access)
         if id_info.get('sub') == access_info.get('username') and access_info.get('client_id') == CONSTANTS['cognito_app']:
-            print(id_info.get('email'))
             return True, id_info.get('email')
         else:
             return False, None
@@ -457,9 +460,7 @@ def remove_bookmark():
             Key={'userId': email}
         )
         bookmarks = response['Item']['bookmarks']
-        print(bookmarks, file=sys.stderr)
         remove_index = int(bookmarks.index(article_id))
-        print(remove_index, file=sys.stderr)
         response = users_table.update_item(
             Key={'userId': email},
             UpdateExpression="REMOVE bookmarks["+str(remove_index)+"]",
@@ -509,9 +510,7 @@ def remove_like():
             Key={'userId': email}
         )
         likes = response['Item']['likes']
-        print(likes, file=sys.stderr)
         remove_index = int(likes.index(article_id))
-        print(remove_index, file=sys.stderr)
         response = users_table.update_item(
             Key={'userId': email},
             UpdateExpression="REMOVE likes["+str(remove_index)+"]",
@@ -540,7 +539,6 @@ def remove_like():
             )
             likes_list.append(response['Item'])
         clean(likes_list)
-    print("NEW NUM LIKES:", len(likes_list), file=sys.stderr)
     return Response(json.dumps({"found": likes_list}), status=200, mimetype='application/json')
 
 
@@ -562,9 +560,7 @@ def remove_dislike():
             Key={'userId': email}
         )
         dislikes = response['Item']['dislikes']
-        print(dislikes, file=sys.stderr)
         remove_index = int(dislikes.index(article_id))
-        print(remove_index, file=sys.stderr)
         response = users_table.update_item(
             Key={'userId': email},
             UpdateExpression="REMOVE dislikes["+str(remove_index)+"]",
@@ -733,7 +729,6 @@ def get_ml_two():
         for each in ml_two:
             ml_two[each] = [int(i) for i in ml_two[each]]
         ml_two = json.loads(json.dumps(ml_two))
-        #print(ml_two, file=sys.stderr)
 
         real_data = []
         for i in ml_two:
@@ -741,33 +736,23 @@ def get_ml_two():
                 Key={'id': i}
             )
             real_data.append([i, response['Item']['category'], response['Item']['provider'], ml_two[i]])
-        #for item in real_data:
-        #    print(item, file=sys.stderr)
 
 
         all_news = table.scan()
         all_news = all_news['Items']
         all_news.sort(key=operator.itemgetter('datePublished'), reverse=True)
         all_news = all_news[:3000]
-        #print(len(all_news), all_news, file=sys.stderr)
         news_condensed = []
         for each in all_news:
             news_condensed.append([each['id'], each['category'], each['provider']])
-        #print(len(news_condensed), news_condensed, file=sys.stderr)
-        '''
-        all_news_items = all_news['found']
-        for each in all_news_items:
-            print(each, file=sys.stderr)'''
 
         results = new_knn.main(real_data, news_condensed, "JSON", "RFC")[:50]
-        #print(results)
         result_list = []
         for item in results:
             response = table.get_item(
                 Key={'id': item[0]}
             )
             ml_two_feed.append(response['Item'])
-            print(str(response['Item']['category'].encode('utf-8')), str(response['Item']['provider'].encode('utf-8')), str(response['Item']['name'].encode('utf-8')), file=sys.stderr)
     return Response(json.dumps({"found": ml_two_feed}), status=200, mimetype='application/json')
 
 
@@ -777,4 +762,3 @@ if __name__ == "__main__":
     # 0.0.0.0 cause public and shit
     app.run(host='0.0.0.0', debug=True)
     
-    # get_syset_info(get_sysets_id('elon musk')

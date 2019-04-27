@@ -10,7 +10,6 @@ export default () => (
     <Route path="/" exact component={Feed} />
     <Route path="/login" exact component={Login} />
     <Route path="/signup" exact component={Signup} />
-    <Route path="/settings" exact component={Settings} />
     <Route component={NotFound} />
   </Switch>
 );

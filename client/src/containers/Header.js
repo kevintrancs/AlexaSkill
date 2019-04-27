@@ -514,10 +514,7 @@ class Header extends Component {
                 <ListItemText primary={text} />
               </ListItem>
             ))}
-            <ListItem button key={"Settings"} component={Link} to="/settings">
-              <ListItemIcon>{icons[icons.length - 1]}</ListItemIcon>
-              <ListItemText primary={"Settings"} />
-            </ListItem>
+          
             <ListItem
               button
               key={"My News"}

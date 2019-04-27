@@ -322,9 +322,13 @@ export function fetchRelatedArticles(id) {
   return function(dispatch) {
     dispatch(requestFeed());
     return fetch("http://localhost:5000/api/ml?field=" + id, headers)
-      .then(results => results.json())
+      .then(results => results.json()).catch(err => {
+        return Promise.reject();
+      })
       .then(json => {
         dispatch(receiveMlFeed(json.found));
+      }).catch(err => {
+        return Promise.reject();
       });
   };
 }
