@@ -225,15 +225,6 @@ def register_user():
     return Response(json.dumps({"status": "Successful Register"}), status=200, mimetype='application/json')
 
 
-## ****************************** ##
-
-### ALRIGHT LADIES AND GENTLEMEN BIG ASTERISK ON THIS SECTION HERE
-### FLAGS FOR INTERACTION IN ML_TWO ARE IN THE ORDER AS FOLLOWS
-### [ LIKE, BOOKMARK, CLICK, DISLIKE ]
-### EX: ARTICLE = [1,0,1,1] MEANS LIKED, BOOKMARKED, AND CLICKED
-
-## ****************************** ##
-
 
 ## UPDATE (ADD) METHODS
 
@@ -287,11 +278,9 @@ def update_bookmarks():
             )
     return Response(json.dumps({"status": response}), status=200, mimetype='application/json')
 
+
 @app.route("/user/addEvent", methods=['PUT'])
 def add_user_event():
-    '''
-    valid = False
-    email = ''
     access = request.headers.get('access_token')
     refresh = request.headers.get('refresh_token')
     _id = request.headers.get('id_token')
@@ -348,66 +337,63 @@ def add_user_event():
         print(e)
         print("Error putting data into events table")
 
-    '''
+    
     return Response(json.dumps({"status": "Successful event store"}), status=200, mimetype='application/json')
 
 @app.route("/user/collabFilter", methods=['PUT'])
 def collab_filter():
-    email = 'supertest1@test.com'
-    '''
-    access = request.headers.get('access_token')
-    refresh = request.headers.get('refresh_token')
-    _id = request.headers.get('id_token')
-    valid, email = verify_user(access, refresh, _id)
+    
+    try:
+        valid, email = verify_user(access, refresh, _id)
 
-    data = request.data
-    dataDict = json.loads(data)
-    article_id = dataDict.get('article_id')
-    '''
-    valid = True
-    usersWhoRead = {}
-    if valid:
-        response = collab_table.query(
-            KeyConditionExpression=Key('user_id').eq(email)
-        )
-        for i in response['Items']:
-            for item in i['articles_read']:
-                response2 = collab_table.scan(
-                    FilterExpression=Attr('articles_read').contains(item) & Attr('user_id').ne(email)
-                )
-                #print(response2)
-                if response2['Items'] != []:
-                    result = response2['Items'][0]['articles_read']
-                    alsoRead = []
-                    for article in result:
-                        if article not in alsoRead and article != item:
-                            alsoRead.append(article)
-                    usersWhoRead[item] = alsoRead
+        data = request.data
+        dataDict = json.loads(data)
+        article_id = dataDict.get('article_id')
+        
+        usersWhoRead = {}
+        if valid:
+            response = collab_table.query(
+                KeyConditionExpression=Key('user_id').eq(email)
+            )
+            for i in response['Items']:
+                for item in i['articles_read']:
+                    response2 = collab_table.scan(
+                        FilterExpression=Attr('articles_read').contains(item) & Attr('user_id').ne(email)
+                    )
+                    #print(response2)
+                    if response2['Items'] != []:
+                        result = response2['Items'][0]['articles_read']
+                        alsoRead = []
+                        for article in result:
+                            if article not in alsoRead and article != item:
+                                alsoRead.append(article)
+                        usersWhoRead[item] = alsoRead
 
-    print(usersWhoRead)
-    article_data = []
-    for k, v in usersWhoRead.items():
-        resp = table.get_item(Key={'id': k})
-        articleRead = {}
-        if 'Item' in resp:
-            key = resp['Item']
-            #print(key['name'])
-            other_articles = []
-            for item in v:
-                otherArticle = table.get_item(Key={'id': item})
-                if 'Item' in otherArticle:
-                    other_articles.append(otherArticle['Item'])
-            articleRead['name'] = key['name']
-            articleRead['articles'] = other_articles
-            article_data.append(articleRead)
+        print(usersWhoRead)
+        article_data = []
+        for k, v in usersWhoRead.items():
+            resp = table.get_item(Key={'id': k})
+            articleRead = {}
+            if 'Item' in resp:
+                key = resp['Item']
+                #print(key['name'])
+                other_articles = []
+                for item in v:
+                    otherArticle = table.get_item(Key={'id': item})
+                    if 'Item' in otherArticle:
+                        other_articles.append(otherArticle['Item'])
+                articleRead['name'] = key['name']
+                articleRead['articles'] = other_articles
+                article_data.append(articleRead)
 
-    print(article_data[:2])
-    #print(len(article_data))
-    return Response(json.dumps({'found': article_data}), status=200, mimetype='application/json')
+        print(article_data[:2])
+        #print(len(article_data))
+        return Response(json.dumps({'found': article_data}), status=200, mimetype='application/json')
 
-
-
-    #return Response(json.dumps({"status": "Successful collab event"}), status=200, mimetype='application/json')
+    except Exception as e:
+        print (e):
+    finally:
+        return Response(json.dumps({"found": []), status=200, mimetype='application/json')
 
 
 @app.route("/user/readArticle", methods=['PUT'])
@@ -472,6 +458,68 @@ def read_article():
             print(e)
     
     return Response(json.dumps({"status": "Successful collab event"}), status=200, mimetype='application/json')
+
+## ****************************** ##
+
+### ALRIGHT LADIES AND GENTLEMEN BIG ASTERISK ON THIS SECTION HERE
+### FLAGS FOR INTERACTION IN ML_TWO ARE IN THE ORDER AS FOLLOWS
+### [ LIKE, BOOKMARK, CLICK, DISLIKE ]
+### EX: ARTICLE = [1,0,1,1] MEANS LIKED, BOOKMARKED, AND CLICKED
+
+## ****************************** ##
+
+
+## UPDATE (ADD) METHODS
+
+@app.route("/user/updateBookmark", methods=['PUT'])
+def update_bookmarks():
+    article_id = dataDict.get('article_id')
+    valid, email = verify_user(access, refresh, _id)
+    if valid:
+        # ConditionExpression: Only add if it's not in there (otherwise 500's)
+        response = users_table.update_item(
+            Key={'userId': email},
+            UpdateExpression="SET bookmarks = list_append(bookmarks, :i)",
+            ConditionExpression="NOT(contains(bookmarks, :j))",
+            ExpressionAttributeValues={
+                ':i': [article_id],
+                ':j': article_id,
+            },
+            ReturnValues="UPDATED_NEW"
+        )
+
+        # Here's where we do stuff to ML_TWO.
+        # If the article exists, set the bookmarked flag to 1; 
+        # if doesn't exist, add article with bookmarked flag set to 1
+        user_entry = users_table.get_item(
+            Key={'userId': email}
+        )
+        ml_two = user_entry['Item']['ml_two']
+        if article_id in ml_two:
+            response_two = users_table.update_item(
+                Key = {'userId': email},
+                UpdateExpression="SET ml_two.#a[1] = :v",
+                ExpressionAttributeNames={
+                    '#a': str(article_id),
+                },
+                ExpressionAttributeValues={
+                    ':v': 1,
+                },
+                ReturnValues="UPDATED_NEW"
+            )
+        else:
+            response_two = users_table.update_item(
+                Key = {'userId': email},
+                UpdateExpression="SET ml_two.#a = :L",
+                 ExpressionAttributeNames={
+                    '#a': str(article_id),
+                },
+                ExpressionAttributeValues={
+                    ':L': [0,1,0,0],
+                },
+                ReturnValues="UPDATED_NEW"
+            )
+    return Response(json.dumps({"status": response}), status=200, mimetype='application/json')
 
 @app.route("/user/updateHistory", methods=['PUT'])
 def update_history():

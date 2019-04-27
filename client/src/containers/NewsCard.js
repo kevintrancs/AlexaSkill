@@ -20,15 +20,15 @@ import BookmarkBorderIcon from "@material-ui/icons/BookmarkBorderOutlined";
 import ReactGA from "react-ga";
 import {
   fetchRelatedArticles,
+  fetchReadArticle,
   fetchAddHistory,
   fetchAddLikes,
   fetchAddDislikes,
   fetchRemoveBookmark,
   fetchRemoveLike,
   fetchRemoveDislike,
-  fetchStoreEvents,
-  fetchReadArticle
-} from '../actions/actions'
+  fetchStoreEvents
+} from "../actions/actions";
 
 import { fetchAddBookmarks } from "../actions/actions";
 const drawerWidth = 240;
@@ -231,6 +231,12 @@ class NewsCard extends Component {
     } else {
       this.setState({ liked: true, disliked: false });
       this.props.removeDislike(
+        this.props.access,
+        this.props.id,
+        this.props.refresh,
+        article
+      );
+      this.props.newLike(
         this.props.access,
         this.props.id,
         this.props.refresh,

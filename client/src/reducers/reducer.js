@@ -35,8 +35,6 @@ import {
   REMOVE_DISLIKES,
   READ_ARTICLE,
   COLLAB_FILTER,
-  VERTICLE_FEED,
-  HORIZONTAL_FEED
 } from "../actions/actions";
 
 const startState = {
@@ -112,6 +110,10 @@ const reducer = (state = startState, action) => {
       return { ...state, loading: true };
     case RECIEVE_BOOKMARKS:
       return { ...state, loading: false, bookmarks: action.json };
+    case READ_ARTICLE:
+      return { ...state };
+    case COLLAB_FILTER:
+      return { ...state, items: action.json };
     case ADD_BOOKMARKS:
       return { ...state };
     case REMOVE_BOOKMARKS:
@@ -138,10 +140,6 @@ const reducer = (state = startState, action) => {
       return { ...state };
     case RECEIVE_DISLIKES:
       return { ...state, dislikes: action.json };
-    case READ_ARTICLE:
-      return { ...state };
-    case COLLAB_FILTER:
-      return { ...state, items: action.json };
     default:
       return state;
   }

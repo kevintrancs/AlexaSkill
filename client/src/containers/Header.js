@@ -60,6 +60,11 @@ import {
   fetchBookmarks,
   fetchStoreEvents,
   fetchCollabFilter,
+  fetchLikes,
+  fetchDislikes,
+  fetchBookmarksFeed,
+  fetchHistory,
+  fetchMLTwoFeed
 } from "../actions/actions";
 import { article_id } from "./NewsCard";
 import ReactGA from "react-ga";
