@@ -9,22 +9,28 @@ import GridListTileBar from '@material-ui/core/GridListTileBar';
 import IconButton from '@material-ui/core/IconButton';
 import StarBorderIcon from '@material-ui/icons/StarBorder';
 import ListSubheader from '@material-ui/core/ListSubheader';
-//import tileData from './tileData';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import Typography from '@material-ui/core/Typography';
+import { fetchCollabFilter } from '../../../actions/actions';
 
 const styles = theme => ({
   root: {
     display: 'flex',
-    width: '2500',
     flexWrap: 'wrap',
-    justifyContent: 'space-evenly',
+    justifyContent: 'space-around',
     overflow: 'hidden',
     backgroundColor: theme.palette.background.paper,
   },
   gridList: {
     flexWrap: 'nowrap',
     //width: 600,
+    //height: 550,
     // Promote the list into his own layer on Chrome. This cost memory but helps keeping high FPS.
     transform: 'translateZ(0)',
+  },
+  gridHeader: {
+    flexWrap: 'wrap'
   },
   title: {
     color: theme.palette.primary.light,
@@ -32,6 +38,21 @@ const styles = theme => ({
   titleBar: {
     background:
       'linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 70%, rgba(0,0,0,0) 100%)',
+  },
+  list: {
+    width: '100%',
+    minWidth: 600,
+    backgroundColor: theme.palette.background.paper
+  },
+  layout: {
+    width: 1500,
+    marginLeft: theme.spacing.unit * 3,
+    marginRight: theme.spacing.unit * 3,
+    [theme.breakpoints.up(1100 + theme.spacing.unit * 3 * 2)]: {
+      width: 1100,
+      marginLeft: "auto",
+      marginRight: "auto"
+    }
   },
 });
 
@@ -52,16 +73,12 @@ const styles = theme => ({
  *   },
  * ];
  */
-function getTileData(item) {
-  var result = {
-    id: item.id,
-    img: item.thumbnail,
-    title: item.name,
-    description: item.description,
-    provider: item.provider,
-    category: item.category,
-  }
 
+function separateItems(item) {
+  var result = {
+    articleRead: item.name,
+    otherArticles: item.articles
+  }
   return result;
 }
 
@@ -77,59 +94,47 @@ class SingleLineGridList extends Component {
     };
   }
 
-  favoriteButtonClicked(article, cat) {
-    // dis works
-    if (!this.state.favorited) {
-      this.props.newBookmark(
-        this.props.access,
-        this.props.id,
-        this.props.refresh,
-        article
-      );
-      this.props.event(
-        this.props.access,
-        this.props.id,
-        this.props.refresh,
-        {
-          article: article,
-          favorited: 1,
-          category: cat,
-          liked: 0,
-          disliked: 0,
-          clicked: 0,
-          searchVal: ''
-        }
-      );
-    }
+  componentDidMount() {
+    this.props.getCollab();
   }
+
+
 
   render() {
     const { classes } = this.props;
-    const tileData = this.props.items.map(getTileData);
+    const section = this.props.items.map(separateItems);
   
     return (
-      <div className={classes.root}>
-        <GridList className={classes.gridList} cellWidth={600} cols={2.5}>
-          {tileData.map(tile => (
-            <GridListTile key={tile.id} cols={.15}>
-              <ListSubheader component="div">Because you read...</ListSubheader>
-              <img src={tile.img} alt={tile.title} />
-              <GridListTileBar
-                title={tile.title}
-                subtitle={tile.description}
-                classes={{
-                  root: classes.titleBar,
-                  title: classes.title,
-                }}
-                actionIcon={
-                  <IconButton>
-                    <StarBorderIcon className={classes.title} onClick={this.favoriteButtonClicked.bind(this, tile.id, tile.category)} />
-                  </IconButton>
-                }
-              />
-            </GridListTile>
-          ))}
-        </GridList>
+      <div>
+        <List style={{paddingTop: '100', paddingLeft: '300'}}>
+        {section.map(item => (
+          <ListItem key={item.articleRead}>
+            <div className={classes.root}>
+              <GridList className={classes.gridList} cols={2}>
+                {item.otherArticles.map(tile => (
+                  <GridListTile key={tile.id} cols={1}>
+                    <img src={tile.thumbnail} alt={tile.name} />
+                    <a href={tile.url} target="_blank">{tile.name}</a>
+                    <GridListTileBar
+                      title={tile.name}
+                      subtitle={tile.description}
+                      classes={{
+                        root: classes.titleBar,
+                        title: classes.title,
+                      }}
+                      actionIcon={
+                        <IconButton>
+                          <StarBorderIcon className={classes.title} />
+                        </IconButton>
+                      }
+                    />
+                  </GridListTile>
+                ))}
+              </GridList>
+            </div>
+          </ListItem>
+        ))}
+        </List>
       </div>
     );
   }
@@ -138,7 +143,9 @@ class SingleLineGridList extends Component {
 const mapStateToProps = state => ({
   items: state.items
 });
-const mapDispatchToProps = {};
+const mapDispatchToProps = {
+  getCollab: fetchCollabFilter
+};
 
 SingleLineGridList.propTypes = {
   classes: PropTypes.object.isRequired,

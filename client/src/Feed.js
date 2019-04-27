@@ -184,7 +184,9 @@ class Feed extends Component {
   }
 
   render() {
-    const { classes, theme, open } = this.props;
+    const { classes, theme, open, vertical_feed } = this.props;
+    console.log("open: ", open);
+    console.log("vertical: ", vertical_feed)
     return (
       <div className={classes.root}>
         <CssBaseline />

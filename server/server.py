@@ -387,10 +387,21 @@ def collab_filter():
     print(usersWhoRead)
     article_data = []
     for k, v in usersWhoRead.items():
-        resp = table.get_item(Key={'id': rel})
+        resp = table.get_item(Key={'id': k})
+        articleRead = {}
         if 'Item' in resp:
-            article_data.append(resp['Item'])
-    #print(article_data[:3])
+            key = resp['Item']
+            #print(key['name'])
+            other_articles = []
+            for item in v:
+                otherArticle = table.get_item(Key={'id': item})
+                if 'Item' in otherArticle:
+                    other_articles.append(otherArticle['Item'])
+            articleRead['name'] = key['name']
+            articleRead['articles'] = other_articles
+            article_data.append(articleRead)
+
+    print(article_data[:2])
     #print(len(article_data))
     return Response(json.dumps({'found': article_data}), status=200, mimetype='application/json')
 

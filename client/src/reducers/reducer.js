@@ -35,6 +35,8 @@ import {
   REMOVE_DISLIKES,
   READ_ARTICLE,
   COLLAB_FILTER,
+  VERTICLE_FEED,
+  HORIZONTAL_FEED
 } from "../actions/actions";
 
 const startState = {
@@ -61,11 +63,11 @@ const reducer = (state = startState, action) => {
     case REQUEST_FEED:
       return { ...state, loading: true };
     case RECEIVE_INIT_FEED:
-      return { ...state, items: action.json, loading: false };
+      return { ...state, items: action.json, loading: false, vertical_feed: true };
     case RECEIVE_SEARCH_FEED:
-      return { ...state, items: action.json, loading: false };
+      return { ...state, items: action.json, loading: false, vertical_feed: true };
     case RECEIVE_TOPIC_FEED:
-      return { ...state, items: action.json, loading: false };
+      return { ...state, items: action.json, loading: false, vertical_feed: true };
     case RECEIVE_ML_FEED:
       return { ...state, items: action.json, loading: false };
     case RECEIVE_BOOKMARKS_FEED:

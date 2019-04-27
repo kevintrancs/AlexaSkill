@@ -35,6 +35,8 @@ export const REMOVE_LIKES = "REMOVE_LIKES";
 export const REMOVE_DISLIKES = "REMOVE_DISLIKES";
 export const READ_ARTICLE = "READ_ARTICLE";
 export const COLLAB_FILTER = "COLLAB_FILTER";
+export const VERTICLE_FEED = "VERTICLE_FEED";
+export const HORIZONTAL_FEED = "HORIZONTAL_FEED";
 
 const headers = {
   "Access-Control-Allow-Origin": "*",
@@ -42,11 +44,19 @@ const headers = {
   Accept: "application/json"
 };
 
+export const verticleFeed = () => ({
+  type: VERTICLE_FEED
+});
+export const horizontalFeed = () => ({
+  type: HORIZONTAL_FEED
+});
 export const collabFilter = json => ({
-  type: COLLAB_FILTER
+  type: COLLAB_FILTER,
+  json: json
 });
 export const readArticle = json => ({
-  type: READ_ARTICLE
+  type: READ_ARTICLE,
+  json: json
 });
 export const storeEvent = json => ({
   type: STORE_EVENT
@@ -171,6 +181,19 @@ export const updatePasswordConfirm = str => ({
 });
 
 // Dispatches
+
+export function renderVertical() {
+  return function(dispatch) {
+    dispatch(verticleFeed());
+  };
+}
+
+export function renderHorizontal() {
+  return function(dispatch ){
+    dispatch(horizontalFeed());
+  };
+}
+
 export function updateEmailWorker(val) {
   return function(dispatch) {
     dispatch(updateEmail(val));
@@ -508,6 +531,7 @@ export function fetchReadArticle(access, id, refresh, article_id) {
 
 export function fetchCollabFilter(access, id, refresh, article_id) {
   return function(dispatch) {
+    dispatch(requestFeed());
     var cust_headers = headers;
     cust_headers["access_token"] = access;
     cust_headers["id_token"] = id;

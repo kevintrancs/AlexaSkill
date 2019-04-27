@@ -59,7 +59,7 @@ import {
   fetchRelatedArticles,
   fetchBookmarks,
   fetchStoreEvents,
-  fetchCollabFilter
+  fetchCollabFilter,
 } from "../actions/actions";
 import { article_id } from "./NewsCard";
 import ReactGA from "react-ga";
@@ -396,7 +396,8 @@ class Header extends Component {
     this.handleCategoryChange("Breaking", 0);
   };
 
-  render(){
+
+  render() {
     const { classes, theme } = this.props;
     const { open, open_list } = this.props;
     const icons = [
@@ -576,7 +577,7 @@ class Header extends Component {
                   </ListItemIcon>
                   <ListItemText inset primary="ML 2" />
                 </ListItem>
-                <ListItem button className={classes.nested} key={"ML3"} onClick={this.handleML3.bind(this, article_id)}>
+                <ListItem button className={classes.nested} key={"ML3"} component={Link} to="/ml3 ">
                   <ListItemIcon>
                     <StarBorder />
                   </ListItemIcon>
