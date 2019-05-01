@@ -710,6 +710,9 @@ def fetch_mini():
                 'query_use').eq(search_query))
             return Response(json.dumps({'found': response['Items']}), status=200, mimetype='application/json')
 
+
+
+# Machine Learning endpoint #2
 @app.route("/user/mltwo", methods=['GET'])
 def get_ml_two():
     access = request.headers.get('access_token')
@@ -754,6 +757,56 @@ def get_ml_two():
             )
             ml_two_feed.append(response['Item'])
     return Response(json.dumps({"found": ml_two_feed}), status=200, mimetype='application/json')
+
+
+# Machine Learning endpoint #3
+@app.route("/user/mlthree", methods=['GET'])
+def get_ml_three():
+    access = request.headers.get('access_token')
+    refresh = request.headers.get('refresh_token')
+    _id = request.headers.get('id_token')
+    valid, email = verify_user(access, refresh, _id)
+    
+    ml_three_ids = None
+    ml_three_feed = []
+    # Get user bookmark list
+    # search for those ids in
+    if valid:
+        response = users_table.get_item(
+            Key={'userId': email}
+        )
+        # We're using ml_two data for the logistic regression model
+        ml_two = response['Item']['ml_two']
+        for each in ml_two:
+            ml_two[each] = [int(i) for i in ml_two[each]]
+        ml_two = json.loads(json.dumps(ml_two))
+
+        real_data = []
+        for i in ml_two:
+            response = table.get_item(
+                Key={'id': i}
+            )
+            real_data.append([i, response['Item']['category'], response['Item']['provider'], ml_two[i]])
+
+
+        all_news = table.scan()
+        all_news = all_news['Items']
+        all_news.sort(key=operator.itemgetter('datePublished'), reverse=True)
+        all_news = all_news[:3000]
+        news_condensed = []
+        for each in all_news:
+            news_condensed.append([each['id'], each['category'], each['provider']])
+
+        # The main difference is this line right here
+        results = new_knn.main(real_data, news_condensed, "JSON", "LOG")[:50]
+        result_list = []
+        for item in results:
+            response = table.get_item(
+                Key={'id': item[0]}
+            )
+            ml_three_feed.append(response['Item'])
+    return Response(json.dumps({"found": ml_three_feed}), status=200, mimetype='application/json')
+
 
 
 

@@ -7,6 +7,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.neighbors import NearestNeighbors
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
 import scipy
 import numpy as np
 import os
@@ -79,6 +80,10 @@ def clean_input_csv(filename):
     write_json_dict(category_dict, CATEGORY_FILE)
 
 
+
+# Pretty simple function. Takes in a CSV filename in the way we've defined before, and appends the bits
+# of the line which we actually care about. Not used in deployment, mostly for testing and development
+# purposes.
 def read_file_csv(filename):
     id = []
     category = []
@@ -175,33 +180,34 @@ def rfc(xtrain, ytrain, xtest):
     #print(predictions)
     return predictions
 
+# Logistic regression model. Probably won't be too solid, but it's something
+def logistic(xtrain, ytrain, xtest):
+    reg = LogisticRegression(solver="saga", max_iter = 500)
+    reg.fit(xtrain, ytrain)
+    predictions = reg.predict(xtest)
+    return predictions
+
+
 # MODE SHOULD BE "CSV" or other
 def main(user_data, news_in, input, mode):
     if input == "CSV":
         x = 1
         # do nothing for now
     else:
+        # Do the appropriate setup work, independent of which model we're trying
+        news_catprov = clean_list_catprov(news_in, 1)
+        user_catprov = clean_list_catprov(user_data, 1)
+        user_catprov_binary = clean_interaction_data(user_catprov)
+        user_ids, user_points, user_outcomes, news_ids, news_points = split_data(user_catprov_binary, news_catprov)
+        predictions = []
+        # Run different models based on which mode we're provided
         if mode == "RFC":
-            news_catprov = clean_list_catprov(news_in, 1)
-            user_catprov = clean_list_catprov(user_data, 1)
-            user_catprov_binary = clean_interaction_data(user_catprov)
-            user_ids, user_points, user_outcomes, news_ids, news_points = split_data(user_catprov_binary, news_catprov)
             predictions = rfc(user_points, user_outcomes, news_points)
-            zipped = zip(news_ids, predictions)
-            #print(zipped, type(zipped))
-            # This line right here is why I hate python 2
-            results = list(reversed(sorted(zipped, key = lambda t: t[1])))
-            #print(results, type(results))
-            return results
+        elif mode == "LOG":
+            predictions = logistic(user_points, user_outcomes, news_points)
         else:
-            news_catprov = clean_list_catprov(news_in, 1)
-            user_catprov = clean_list_catprov(user_data, 1)
-            user_catprov_binary = clean_interaction_data(user_catprov)
-            user_ids, user_points, user_outcomes, news_ids, news_points = split_data(user_catprov_binary, news_catprov)
             predictions = knn(user_points, user_outcomes, news_points)
-            zipped = zip(news_ids, predictions)
-            #print(zipped, type(zipped))
-            # This line right here is why I hate python 2
-            results = list(reversed(sorted(zipped, key = lambda t: t[1])))
-            #print(results, type(results))
-            return results
+            
+        zipped = zip(news_ids, predictions)
+        results = list(reversed(sorted(zipped, key = lambda t: t[1])))
+        return results
