@@ -19,6 +19,7 @@ from data.news import headers, pull
 from warrant import Cognito
 from jose import jwt, jwk
 from ast import literal_eval
+import uuid
 
 import new_knn
 app = Flask(__name__)
@@ -27,9 +28,14 @@ CORS(app)
 with open('../server/constants.json') as f:
     CONSTANTS = json.load(f)
 
-db = boto3.resource('dynamodb')
-table = db.Table('NewsHashed')
-users_table = db.Table('userData')
+db = boto3.resource('dynamodb') #keep this line
+
+
+table = db.Table('NewsHashed') # keep this line
+users_table = db.Table('userData') # keep this line
+collab_table = db.Table('collab_filter')
+
+cookie_id = str(uuid.uuid4())
 
 def get_syset_info(ids):
     terms = set()
@@ -75,7 +81,6 @@ def fetch_category():
 @app.route("/api/ml", methods=['GET'])
 def fetch_related():
     id = request.args.get('field')
-    #id = '0419d45c92fb9a205d63a7c5177cea3bce8e89f9244ae0d61eab143af0c294ad'
     if id:
         response = table.get_item(Key={'id': id})
     
@@ -755,10 +760,117 @@ def get_ml_two():
             ml_two_feed.append(response['Item'])
     return Response(json.dumps({"found": ml_two_feed}), status=200, mimetype='application/json')
 
+@app.route("/user/readArticle", methods=['PUT'])
+def read_article():
+    user_id = ''
+
+    access = request.headers.get('access_token')
+    refresh = request.headers.get('refresh_token')
+    _id = request.headers.get('id_token')
+    valid, email = verify_user(access, refresh, _id)
+
+    if valid:
+        user_id = email
+    else:
+        user_id = cookie_id
+
+    data = request.data
+    dataDict = json.loads(data)
+    article_id = dataDict.get('article_id')
+    article_id = article_id['article_id']
+    print(article_id)
+
+    try:
+        response = collab_table.update_item (
+            Key={'user_id': user_id},
+            UpdateExpression="SET articles_read = list_append(articles_read, :i)",
+            ExpressionAttributeValues={
+                ':i': [article_id],
+            },
+            ReturnValues="UPDATED_NEW"
+        )   
+    except Exception as e:
+        print(e)
+        try:
+            response = collab_table.put_item(
+                Item={
+                    'user_id': user_id,
+                    'articles_read': [article_id]
+                }
+            )
+        except Exception as e:
+            print(e)
+    
+    return Response(json.dumps({"status": "Successful collab event"}), status=200, mimetype='application/json')
+
+@app.route("/user/collabFilter", methods=['GET'])
+def collab_filter():
+    #access = request.headers.get('access_token')
+    #refresh = request.headers.get('refresh_token')
+    #_id = request.headers.get('id_token')
+
+    try:
+        #valid, email = verify_user(access, refresh, _id)
+        email = 'supertest1@test.com' # delete this line
+        valid = True # delete this line
+        usersWhoRead = {}
+
+        if valid:
+            response = collab_table.query(
+                KeyConditionExpression=Key('user_id').eq(email)
+            )
+            for i in response['Items']:
+                for item in i['articles_read']:
+                    response2 = collab_table.scan(
+                        FilterExpression=Attr('articles_read').contains(item) & Attr('user_id').ne(email)
+                    )
+                    #print(response2)
+                    if response2['Items'] != []:
+                        result = response2['Items'][0]['articles_read']
+                        alsoRead = []
+                        for article in result:
+                            if article not in alsoRead and article != item:
+                                alsoRead.append(article)
+                        usersWhoRead[item] = alsoRead
+
+        print(usersWhoRead)
+        print()
+        article_data = []
+        for k, v in usersWhoRead.items():
+            for item in v:
+                otherArticle = table.get_item(Key={'id': item})
+                if 'Item' in otherArticle:
+                    article_data.append(otherArticle['Item'])
+        print(article_data)
+        '''
+        article_data = []
+        for k, v in usersWhoRead.items():
+            resp = table.get_item(Key={'id': k})
+            articleRead = {}
+            if 'Item' in resp:
+                key = resp['Item']
+                #print(key['name'])
+                other_articles = []
+                for item in v:
+                    otherArticle = table.get_item(Key={'id': item})
+                    if 'Item' in otherArticle:
+                        other_articles.append(otherArticle['Item'])
+                articleRead['name'] = key['name']
+                articleRead['articles'] = other_articles
+                article_data.append(articleRead)
+        '''
+
+        #print(article_data[:2])
+        #print(len(article_data))
+        return Response(json.dumps({'found': article_data}), status=200, mimetype='application/json')
+    except Exception as e:
+        print(e)
+    finally:
+        return Response(json.dumps({'found': []}), status=200, mimetype='application/json')
 
 
 if __name__ == "__main__":
-    #fetch_related()
+    collab_filter()
     # 0.0.0.0 cause public and shit
     app.run(host='0.0.0.0', debug=True)
     

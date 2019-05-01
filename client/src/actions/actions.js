@@ -33,6 +33,8 @@ export const ADD_DISLIKES = "ADD_DISLIKES";
 export const REMOVE_BOOKMARKS = "REMOVE_BOOKMARKS";
 export const REMOVE_LIKES = "REMOVE_LIKES";
 export const REMOVE_DISLIKES = "REMOVE_DISLIKES";
+export const COLLAB_FILTER = "COLLAB_FILTER";
+export const READ_ARTICLE = "READ_ARTICLE";
 
 const headers = {
   "Access-Control-Allow-Origin": "*",
@@ -161,6 +163,13 @@ export const updatePasswordConfirm = str => ({
   type: UPDATE_PASSWORD_CONFIRM,
   str: str
 });
+export const collabFilter = json => ({
+  type: COLLAB_FILTER,
+  json: json
+});
+export const readArticle = json => ({
+  type: READ_ARTICLE
+});
 
 // Dispatches
 export function updateEmailWorker(val) {
@@ -252,7 +261,24 @@ export function fetchSearchFeed(value) {
       });
   };
 }
+export function fetchCollabFilter(access, id, refresh) {
+  return function (dispatch) {
+    dispatch(requestFeed());
+    var cust_headers = headers;
+    cust_headers["access_token"] = access;
+    cust_headers["id_token"] = id;
+    cust_headers["refresh_token"] = refresh;
 
+    return fetch("http://localhost:5000/user/collab_filter", {
+      method: "GET",
+      headers: cust_headers
+    })
+    .then(results => results.json())
+    .then(json => {
+      dispatch(collabFilter(json.found));
+    });
+  }
+}
 export function fetchMLTwoFeed(access, id, refresh){
   return function(dispatch){
     dispatch(requestFeed());
@@ -500,6 +526,30 @@ export function fetchStoreEvents(access, id, refresh, dict) {
 
 // functions for adding an article (presumably article id) to a given
 // user list, defined within the function title / api address
+
+export function fetchReadArticle(access, id, refresh, article) {
+  return function(dispatch) {
+    var cust_headers = headers;
+    cust_headers["access_token"] = access;
+    cust_headers["id_token"] = id;
+    cust_headers["refresh_token"] = refresh;
+    return fetch("http://localhost:5000/user/read_article", {
+      method: "PUT",
+      headers: cust_headers,
+      body: JSON.stringify({ article_id: article })
+    })
+    .then(results => results.json())
+    .catch(err => {
+      return Promise.reject();
+    })
+    .then(json => {
+      dispatch(readArticle());
+    })
+    .catch(err => {
+      return Promise.reject();
+    });
+  };
+}
 
 export function fetchAddBookmarks(access, id, refresh, article) {
   return function(dispatch) {
