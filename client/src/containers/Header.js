@@ -57,7 +57,8 @@ import {
   fetchDislikes,
   fetchBookmarksFeed,
   fetchHistory,
-  fetchMLTwoFeed
+  fetchMLTwoFeed,
+  fetchMLThreeFeed
 } from "../actions/actions";
 import { article_id } from "./NewsCard";
 import ReactGA from "react-ga";
@@ -225,7 +226,8 @@ class Header extends Component {
   }
 
   state = {
-    selectedIndex: -1
+    selectedIndex: -1,
+    MLSelectedIndex: -1
   };
 
   getSearch(event) {
@@ -253,7 +255,10 @@ class Header extends Component {
     }
   }
 
+
+  // If we hit this function, we haven't hit an ML tab option - thus we reset the MLSelectedIndex
   handleCategoryChange(category, index) {
+    this.setState ({ MLSelectedIndex: -1 });
     if(this.props.access !== "null" && this.props.access !== null){
       if(this.props.bookmarks === []){
         this.props.getBookmarks(
@@ -331,6 +336,7 @@ class Header extends Component {
   handleMlOne(id) {
     //this.setState({ selectedIndex: index });
     //let aid = this.props.storeArticleId
+    this.setState({ selectedIndex: -1, MLSelectedIndex: 0 });
     console.log("article id ", article_id);
     console.log("id: ", id);
     this.props.getRelated(article_id);
@@ -338,7 +344,13 @@ class Header extends Component {
   }
 
   handleMlTwo(access, id, refresh){
+    this.setState({ selectedIndex: -1, MLSelectedIndex: 1 });
     this.props.getMlTwoFeed(access, id, refresh);
+  }
+
+  handleMlThree(access, id, refresh){
+    this.setState({ selectedIndex: -1, MLSelectedIndex: 2 });
+    this.props.getMlThreeFeed(access, id, refresh);
   }
 
   handleDrawerOpen = () => {
@@ -533,6 +545,7 @@ class Header extends Component {
                   button
                   className={classes.nested}
                   key={"ML1"}
+                  selected={this.state.MLSelectedIndex === 0}
                   onClick={this.handleMlOne.bind(this, article_id)}
                 >
                   <ListItemIcon>
@@ -544,6 +557,7 @@ class Header extends Component {
                   button
                   className={classes.nested}
                   key={"ML2"}
+                  selected={this.state.MLSelectedIndex === 1}
                   onClick={this.handleMlTwo.bind(this, this.props.access, this.props.id, this.props.refresh)}
                 >
                   <ListItemIcon>
@@ -551,7 +565,13 @@ class Header extends Component {
                   </ListItemIcon>
                   <ListItemText inset primary="ML 2" />
                 </ListItem>
-                <ListItem button className={classes.nested}>
+                <ListItem
+                  button
+                  className={classes.nested}
+                  key={"ML3"}
+                  selected={this.state.MLSelectedIndex === 2}
+                  onClick={this.handleMlThree.bind(this, this.props.access, this.props.id, this.props.refresh)}
+                >
                   <ListItemIcon>
                     <StarBorder />
                   </ListItemIcon>
@@ -586,6 +606,7 @@ const mapDispatchToProps = {
   getTopic: fetchTopicFeed,
   getRelated: fetchRelatedArticles,
   getMlTwoFeed: fetchMLTwoFeed,
+  getMlThreeFeed: fetchMLThreeFeed,
   c: closeDrawer,
   o: openDrawer,
   loggingOut: loggingOutWorker,
