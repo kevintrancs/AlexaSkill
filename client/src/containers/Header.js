@@ -57,7 +57,8 @@ import {
   fetchDislikes,
   fetchBookmarksFeed,
   fetchHistory,
-  fetchMLTwoFeed
+  fetchMLTwoFeed,
+  fetchCollabFilter
 } from "../actions/actions";
 import { article_id } from "./NewsCard";
 import ReactGA from "react-ga";
@@ -341,6 +342,10 @@ class Header extends Component {
     this.props.getMlTwoFeed(access, id, refresh);
   }
 
+  handleMlThree(access, id, refresh) {
+    this.props.fetchCollabFilter(access, id, refresh);
+  }
+
   handleDrawerOpen = () => {
     this.props.o();
     console.log("open triggered");
@@ -551,7 +556,12 @@ class Header extends Component {
                   </ListItemIcon>
                   <ListItemText inset primary="ML 2" />
                 </ListItem>
-                <ListItem button className={classes.nested}>
+                <ListItem 
+                  button 
+                  className={classes.nested}
+                  key={"ML3"}
+                  onClick={this.handleMlThree.bind(this, this.props.access, this.props.id, this.props.refresh)}
+                  >
                   <ListItemIcon>
                     <StarBorder />
                   </ListItemIcon>
@@ -596,7 +606,8 @@ const mapDispatchToProps = {
   getLikes: fetchLikes,
   getDislikes: fetchDislikes,
   getBookmarksFeed: fetchBookmarksFeed,
-  getHistory: fetchHistory
+  getHistory: fetchHistory,
+  collabFilter: fetchCollabFilter
 };
 
 export default compose(

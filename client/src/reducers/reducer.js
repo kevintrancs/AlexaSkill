@@ -32,7 +32,9 @@ import {
   RECEIVE_DISLIKES,
   REMOVE_BOOKMARKS,
   REMOVE_LIKES,
-  REMOVE_DISLIKES
+  REMOVE_DISLIKES,
+  COLLAB_FILTER,
+  READ_ARTICLE
 } from "../actions/actions";
 
 const startState = {
@@ -134,6 +136,10 @@ const reducer = (state = startState, action) => {
       return { ...state };
     case RECEIVE_DISLIKES:
       return { ...state, dislikes: action.json };
+    case COLLAB_FILTER:
+      return { ...state, items: action.json, loading: false };
+    case READ_ARTICLE:
+      return { ...state };
 
     default:
       return state;
