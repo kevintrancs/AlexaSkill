@@ -257,17 +257,21 @@ export function fetchMLTwoFeed(access, id, refresh){
   return function(dispatch){
     dispatch(requestFeed());
       var cust_headers = headers;
-      cust_headers["access_token"] = access;
-      cust_headers["id_token"] = id;
-      cust_headers["refresh_token"] = refresh;
+      cust_headers["accessToken"] = access;
+      cust_headers["idToken"] = id;
+      cust_headers["refreshToken"] = refresh;
 
       return fetch("http://localhost:5000/user/mltwo", {
         method: "GET",
         headers: cust_headers
       })      
-      .then(results => results.json())
+      .then(results => results.json()).catch(err => {
+        return Promise.reject();
+      })
       .then(json => {
         dispatch(receiveMlFeed(json.found));
+      }).catch(err => {
+        return Promise.reject();
       });
   }
 }
@@ -276,17 +280,21 @@ export function fetchMLThreeFeed(access, id, refresh){
   return function(dispatch){
     dispatch(requestFeed());
       var cust_headers = headers;
-      cust_headers["access_token"] = access;
-      cust_headers["id_token"] = id;
-      cust_headers["refresh_token"] = refresh;
+      cust_headers["accessToken"] = access;
+      cust_headers["idToken"] = id;
+      cust_headers["refreshToken"] = refresh;
 
       return fetch("http://localhost:5000/user/mlthree", {
         method: "GET",
         headers: cust_headers
       })      
-      .then(results => results.json())
+      .then(results => results.json()).catch(err => {
+        return Promise.reject();
+      })
       .then(json => {
         dispatch(receiveMlFeed(json.found));
+      }).catch(err => {
+        return Promise.reject();
       });
   }
 }
@@ -317,9 +325,9 @@ export function fetchBookmarksFeed(access, id, refresh) {
     // Refresh our bookmarks just in case
     // Then set items = bookmarks
     var cust_headers = headers;
-    cust_headers["access_token"] = access;
-    cust_headers["id_token"] = id;
-    cust_headers["refresh_token"] = refresh;
+    cust_headers["accessToken"] = access;
+    cust_headers["idToken"] = id;
+    cust_headers["refreshToken"] = refresh;
     return fetch("http://localhost:5000/user/bookmarks", {
       method: "GET",
       headers: cust_headers
@@ -337,10 +345,10 @@ export function fetchBookmarksFeed(access, id, refresh) {
   };
 }
 
-export function fetchRelatedArticles(id) {
+export function fetchRelatedArticles(id, email) {
   return function(dispatch) {
     dispatch(requestFeed());
-    return fetch("http://localhost:5000/api/ml?field=" + id, headers)
+    return fetch(" http://localhost:5000/api/ml?field=" + id + "&email="+ email, headers)
       .then(results => results.json()).catch(err => {
         return Promise.reject();
       })
@@ -357,9 +365,9 @@ export function fetchBookmarks(access, id, refresh) {
     dispatch(requestBookmarks());
 
     var cust_headers = headers;
-    cust_headers["access_token"] = access;
-    cust_headers["id_token"] = id;
-    cust_headers["refresh_token"] = refresh;
+    cust_headers["accessToken"] = access;
+    cust_headers["idToken"] = id;
+    cust_headers["refreshToken"] = refresh;
 
     return fetch("http://localhost:5000/user/bookmarks", {
       method: "GET",
@@ -381,9 +389,9 @@ export function fetchBookmarks(access, id, refresh) {
 export function fetchLikes(access, id, refresh) {
   return function(dispatch) {
     var cust_headers = headers;
-    cust_headers["access_token"] = access;
-    cust_headers["id_token"] = id;
-    cust_headers["refresh_token"] = refresh;
+    cust_headers["accessToken"] = access;
+    cust_headers["idToken"] = id;
+    cust_headers["refreshToken"] = refresh;
     return fetch("http://localhost:5000/user/likes", {
       method: "GET",
       headers: cust_headers
@@ -404,9 +412,9 @@ export function fetchLikes(access, id, refresh) {
 export function fetchDislikes(access, id, refresh) {
   return function(dispatch) {
     var cust_headers = headers;
-    cust_headers["access_token"] = access;
-    cust_headers["id_token"] = id;
-    cust_headers["refresh_token"] = refresh;
+    cust_headers["accessToken"] = access;
+    cust_headers["idToken"] = id;
+    cust_headers["refreshToken"] = refresh;
     return fetch("http://localhost:5000/user/dislikes", {
       method: "GET",
       headers: cust_headers
@@ -428,9 +436,9 @@ export function fetchHistory(access, id, refresh) {
   return function(dispatch) {
     dispatch(requestHistory());
     var cust_headers = headers;
-    cust_headers["access_token"] = access;
-    cust_headers["id_token"] = id;
-    cust_headers["refresh_token"] = refresh;
+    cust_headers["accessToken"] = access;
+    cust_headers["idToken"] = id;
+    cust_headers["refreshToken"] = refresh;
 
     return fetch("http://localhost:5000/user/history", {
       method: "GET",
@@ -496,9 +504,9 @@ export function fetchSignUp(email, password) {
 export function fetchStoreEvents(access, id, refresh, dict) {
   return function(dispatch) {
     var cust_headers = headers;
-    cust_headers["access_token"] = access;
-    cust_headers["id_tokent"] = id;
-    cust_headers["refresh_token"] = refresh;
+    cust_headers["accessToken"] = access;
+    cust_headers["idToken"] = id;
+    cust_headers["refreshToken"] = refresh;
     return fetch("http://localhost:5000/user/addEvent", {
       method: "PUT",
       headers: cust_headers,
@@ -523,9 +531,9 @@ export function fetchStoreEvents(access, id, refresh, dict) {
 export function fetchAddBookmarks(access, id, refresh, article) {
   return function(dispatch) {
     var cust_headers = headers;
-    cust_headers["access_token"] = access;
-    cust_headers["id_token"] = id;
-    cust_headers["refresh_token"] = refresh;
+    cust_headers["accessToken"] = access;
+    cust_headers["idToken"] = id;
+    cust_headers["refreshToken"] = refresh;
     return fetch("http://localhost:5000/user/updateBookmark", {
       method: "PUT",
       headers: cust_headers,
@@ -548,9 +556,9 @@ export function fetchRemoveBookmark(access, id, refresh, article) {
   return function(dispatch) {
     dispatch(removeBookmark());
     var cust_headers = headers;
-    cust_headers["access_token"] = access;
-    cust_headers["id_token"] = id;
-    cust_headers["refresh_token"] = refresh;
+    cust_headers["accessToken"] = access;
+    cust_headers["idToken"] = id;
+    cust_headers["refreshToken"] = refresh;
     return fetch("http://localhost:5000/user/removeBookmark", {
       method: "PUT",
       headers: cust_headers,
@@ -572,9 +580,9 @@ export function fetchRemoveBookmark(access, id, refresh, article) {
 export function fetchAddHistory(access, id, refresh, article) {
   return function(dispatch) {
     var cust_headers = headers;
-    cust_headers["access_token"] = access;
-    cust_headers["id_token"] = id;
-    cust_headers["refresh_token"] = refresh;
+    cust_headers["accessToken"] = access;
+    cust_headers["idToken"] = id;
+    cust_headers["refreshToken"] = refresh;
     return fetch("http://localhost:5000/user/updateHistory", {
       method: "PUT",
       headers: cust_headers,
@@ -595,9 +603,9 @@ export function fetchAddHistory(access, id, refresh, article) {
 export function fetchAddLikes(access, id, refresh, article) {
   return function(dispatch) {
     var cust_headers = headers;
-    cust_headers["access_token"] = access;
-    cust_headers["id_token"] = id;
-    cust_headers["refresh_token"] = refresh;
+    cust_headers["accessToken"] = access;
+    cust_headers["idToken"] = id;
+    cust_headers["refreshToken"] = refresh;
     return fetch("http://localhost:5000/user/updateLikes", {
       method: "PUT",
       headers: cust_headers,
@@ -620,9 +628,9 @@ export function fetchRemoveLike(access, id, refresh, article) {
   return function(dispatch) {
     dispatch(removeBookmark());
     var cust_headers = headers;
-    cust_headers["access_token"] = access;
-    cust_headers["id_token"] = id;
-    cust_headers["refresh_token"] = refresh;
+    cust_headers["accessToken"] = access;
+    cust_headers["idToken"] = id;
+    cust_headers["refreshToken"] = refresh;
     return fetch("http://localhost:5000/user/removeLike", {
       method: "PUT",
       headers: cust_headers,
@@ -643,9 +651,9 @@ export function fetchRemoveLike(access, id, refresh, article) {
 export function fetchAddDislikes(access, id, refresh, article) {
   return function(dispatch) {
     var cust_headers = headers;
-    cust_headers["access_token"] = access;
-    cust_headers["id_token"] = id;
-    cust_headers["refresh_token"] = refresh;
+    cust_headers["accessToken"] = access;
+    cust_headers["idToken"] = id;
+    cust_headers["refreshToken"] = refresh;
     return fetch("http://localhost:5000/user/updateDislikes", {
       method: "PUT",
       headers: cust_headers,
@@ -668,9 +676,9 @@ export function fetchRemoveDislike(access, id, refresh, article) {
   return function(dispatch) {
     dispatch(removeBookmark());
     var cust_headers = headers;
-    cust_headers["access_token"] = access;
-    cust_headers["id_token"] = id;
-    cust_headers["refresh_token"] = refresh;
+    cust_headers["accessToken"] = access;
+    cust_headers["idToken"] = id;
+    cust_headers["refreshToken"] = refresh;
     return fetch("http://localhost:5000/user/removeDislike", {
       method: "PUT",
       headers: cust_headers,

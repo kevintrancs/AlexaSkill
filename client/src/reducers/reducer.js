@@ -86,9 +86,9 @@ const reducer = (state = startState, action) => {
       return {
         ...state,
         loggedIn: true,
-        access: action.json.access_token,
-        refresh: action.json.access_token,
-        id: action.json.id_token
+        access: action.json.accessToken,
+        refresh: action.json.refreshToken,
+        id: action.json.idToken
       };
     case UPDATE_EMAIL:
       return { ...state, email: action.str };

@@ -298,7 +298,6 @@ class Header extends Component {
           this.props.id,
           this.props.refresh
         );
-        console.log(this.props.bookmarks);
         ReactGA.event({
           category: "Bookmarks",
           action: "Go to bookmarks"
@@ -337,10 +336,12 @@ class Header extends Component {
     //this.setState({ selectedIndex: index });
     //let aid = this.props.storeArticleId
     this.setState({ selectedIndex: -1, MLSelectedIndex: 0 });
-    console.log("article id ", article_id);
-    console.log("id: ", id);
-    this.props.getRelated(article_id);
-    console.log("clicked ML tab");
+    if(article_id.length > 0){
+      this.props.getRelated(article_id, this.props.email);
+    } 
+    else{
+      this.props.getRelated("0", this.props.email);
+    }
   }
 
   handleMlTwo(access, id, refresh){
@@ -355,24 +356,19 @@ class Header extends Component {
 
   handleDrawerOpen = () => {
     this.props.o();
-    console.log("open triggered");
   };
 
   handleDrawerClose = () => {
     this.props.c();
-    console.log("close triggered");
   };
 
   handleListOpen = () => {
-    console.log(this.props.open_list);
     this.setState({ selectedIndex: 10 });
 
     if (this.props.open_list) {
       this.props.cl();
-      console.log("list close triggered");
     } else {
       this.props.ol();
-      console.log("list open triggered");
     }
   };
 

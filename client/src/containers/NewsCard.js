@@ -196,7 +196,6 @@ class NewsCard extends Component {
   constructor(props) {
     super(props);
     // Tracking state of important clicked bools
-    console.log(this.props.bookmarked);
     this.state = {
       liked: this.props.liked,
       disliked: this.props.disliked,
@@ -318,7 +317,6 @@ class NewsCard extends Component {
         disliked: 0,
         clicked: 0
       });
-      console.log(article);
       ReactGA.event({
         category: "Bookmarks",
         action: "Favorited article",
@@ -339,7 +337,6 @@ class NewsCard extends Component {
   // Little function to add to a user's history. Replace alert
   // With whatever logic we need (supercedes redirect authority)
   articleClicked(e, cat) {
-    console.log("Link Clicked");
     //console.log(e)
     //this.props.store_id(e);
     article_id = e;
@@ -349,7 +346,6 @@ class NewsCard extends Component {
       this.props.refresh,
       article_id
     );
-    console.log(article_id);
     ReactGA.event({
       category: "Link",
       action: "click",

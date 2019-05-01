@@ -75,23 +75,46 @@ def fetch_category():
 @app.route("/api/ml", methods=['GET'])
 def fetch_related():
     id = request.args.get('field')
-    #id = '0419d45c92fb9a205d63a7c5177cea3bce8e89f9244ae0d61eab143af0c294ad'
-    if id:
+    email = request.args.get('email')
+    if len(id) > 5:
         response = table.get_item(Key={'id': id})
-    
-    else:
-        return Response(json.dumps({'found': []}), status=204, mimetype='application/json')
-    
-    if response['Item']['related_ids']:
-        related_ids = response['Item']['related_ids']
-        article_data = []
-        for rel in related_ids:
-            resp = table.get_item(Key={'id': rel})
-            if resp['Item']:
+        if 'related_ids' in response['Item']:
+            related_ids = response['Item']['related_ids']
+            article_data = []
+            for rel in related_ids:
+                resp = table.get_item(Key={'id': rel})
+                if resp['Item']:
+                    article_data.append(resp['Item'])
+
+                    user_check = users_table.get_item(Key={'userId': email})
+                    if resp['Item']['id'] not in user_check['Item']['ml_one']:
+                        response = users_table.update_item(
+                        Key={'userId': email},
+                        UpdateExpression="SET ml_one = list_append(ml_one, :i)",
+                        ExpressionAttributeValues={
+                            ':i': [resp['Item']['id']],
+                        },
+                        ReturnValues="UPDATED_NEW"
+                )
+            return Response(json.dumps({'found': article_data}), status=200, mimetype='application/json')
+        else:
+            resp =  users_table.get_item( Key={'userId': email})
+            l = resp['Item']['ml_one']
+            article_data = []
+            for i in l:
+                resp = table.get_item(Key={'id': i})
                 article_data.append(resp['Item'])
-        return Response(json.dumps({'found': article_data}), status=200, mimetype='application/json')
+            return Response(json.dumps({'found': article_data}), status=200, mimetype='application/json')
+    
     else:
-       return Response(json.dumps({'found': []}), status=204, mimetype='application/json')
+        resp =  users_table.get_item( Key={'userId': email})
+        l = resp['Item']['ml_one']
+        article_data = []
+        for i in l:
+            resp = table.get_item(Key={'id': i})
+            article_data.append(resp['Item'])
+        return Response(json.dumps({'found': article_data}), status=200, mimetype='application/json')
+
 
 @app.route("/api/inital", methods=['GET'])
 def fetch_initial():
@@ -163,9 +186,9 @@ def login_user():
     u = Cognito(CONSTANTS['cognito_id'], CONSTANTS['cognito_app'], username=_email)
     u.authenticate(password=_password)
     info = {
-        "id_token": u.id_token,
-        "access_token": u.access_token,
-        "refresh_token": u.refresh_token
+        "idToken": u.id_token,
+        "accessToken": u.access_token,
+        "refreshToken": u.refresh_token
     }
     return Response(json.dumps(info), status=200, mimetype='application/json')
 
@@ -185,9 +208,9 @@ def verify_user(access, refresh, id):
 
 @app.route("/user/logout", methods=['GET'])
 def logout_user():
-    access = request.headers.get('access_token')
-    refresh = request.headers.get('refresh_token')
-    _id = request.headers.get('id_token')
+    access = request.headers.get('accessToken')
+    refresh = request.headers.get('refreshToken')
+    _id = request.headers.get('idToken')
 
     u = Cognito(CONSTANTS['cognito_id'], CONSTANTS['cognito_app'],
                 id_token=_id, refresh_token=refresh, access_token=access)
@@ -230,9 +253,9 @@ def register_user():
 
 @app.route("/user/updateBookmark", methods=['PUT'])
 def update_bookmarks():
-    access = request.headers.get('access_token')
-    refresh = request.headers.get('refresh_token')
-    _id = request.headers.get('id_token')
+    access = request.headers.get('accessToken')
+    refresh = request.headers.get('refreshToken')
+    _id = request.headers.get('idToken')
     data = request.data
     dataDict = json.loads(data)
     article_id = dataDict.get('article_id')
@@ -285,9 +308,9 @@ def update_bookmarks():
 
 @app.route("/user/updateHistory", methods=['PUT'])
 def update_history():
-    access = request.headers.get('access_token')
-    refresh = request.headers.get('refresh_token')
-    _id = request.headers.get('id_token')
+    access = request.headers.get('accessToken')
+    refresh = request.headers.get('refreshToken')
+    _id = request.headers.get('idToken')
     data = request.data
     dataDict = json.loads(data)
     article_id = dataDict.get('article_id')
@@ -338,9 +361,9 @@ def update_history():
 
 @app.route("/user/updateLikes", methods=['PUT'])
 def update_likes():
-    access = request.headers.get('access_token')
-    refresh = request.headers.get('refresh_token')
-    _id = request.headers.get('id_token')
+    access = request.headers.get('accessToken')
+    refresh = request.headers.get('refreshToken')
+    _id = request.headers.get('idToken')
     data = request.data
     dataDict = json.loads(data)
     article_id = dataDict.get('article_id')
@@ -389,9 +412,9 @@ def update_likes():
 
 @app.route("/user/updateDislikes", methods=['PUT'])
 def update_dislikes():
-    access = request.headers.get('access_token')
-    refresh = request.headers.get('refresh_token')
-    _id = request.headers.get('id_token')
+    access = request.headers.get('accessToken')
+    refresh = request.headers.get('refreshToken')
+    _id = request.headers.get('idToken')
     data = request.data
     dataDict = json.loads(data)
     article_id = dataDict.get('article_id')
@@ -444,9 +467,9 @@ def update_dislikes():
 
 @app.route("/user/removeBookmark", methods=["PUT"])
 def remove_bookmark():
-    access = request.headers.get('access_token')
-    refresh = request.headers.get('refresh_token')
-    _id = request.headers.get('id_token')
+    access = request.headers.get('accessToken')
+    refresh = request.headers.get('refreshToken')
+    _id = request.headers.get('idToken')
     data = request.data
     dataDict = json.loads(data)
     article_id = dataDict.get('article_id')
@@ -494,9 +517,9 @@ def remove_bookmark():
 
 @app.route("/user/removeLike", methods=["PUT"])
 def remove_like():
-    access = request.headers.get('access_token')
-    refresh = request.headers.get('refresh_token')
-    _id = request.headers.get('id_token')
+    access = request.headers.get('accessToken')
+    refresh = request.headers.get('refreshToken')
+    _id = request.headers.get('idToken')
     data = request.data
     dataDict = json.loads(data)
     article_id = dataDict.get('article_id')
@@ -544,9 +567,9 @@ def remove_like():
 
 @app.route("/user/removeDislike", methods=["PUT"])
 def remove_dislike():
-    access = request.headers.get('access_token')
-    refresh = request.headers.get('refresh_token')
-    _id = request.headers.get('id_token')
+    access = request.headers.get('accessToken')
+    refresh = request.headers.get('refreshToken')
+    _id = request.headers.get('idToken')
     data = request.data
     dataDict = json.loads(data)
     article_id = dataDict.get('article_id')
@@ -597,9 +620,9 @@ def remove_dislike():
 
 @app.route("/user/bookmarks", methods=['GET'])
 def get_user_bookmarks():
-    access = request.headers.get('access_token')
-    refresh = request.headers.get('refresh_token')
-    _id = request.headers.get('id_token')
+    access = request.headers.get('accessToken')
+    refresh = request.headers.get('refreshToken')
+    _id = request.headers.get('idToken')
     valid, email = verify_user(access, refresh, _id)
     bookmarks = None
     bookmarks_feed = []
@@ -622,9 +645,9 @@ def get_user_bookmarks():
 
 @app.route("/user/history", methods=['GET'])
 def get_user_history():
-    access = request.headers.get('access_token')
-    refresh = request.headers.get('refresh_token')
-    _id = request.headers.get('id_token')
+    access = request.headers.get('accessToken')
+    refresh = request.headers.get('refreshToken')
+    _id = request.headers.get('idToken')
     valid, email = verify_user(access, refresh, _id)
     history = None
     history_feed = []
@@ -645,9 +668,9 @@ def get_user_history():
 
 @app.route("/user/likes", methods=['GET'])
 def get_user_likes():
-    access = request.headers.get('access_token')
-    refresh = request.headers.get('refresh_token')
-    _id = request.headers.get('id_token')
+    access = request.headers.get('accessToken')
+    refresh = request.headers.get('refreshToken')
+    _id = request.headers.get('idToken')
     valid, email = verify_user(access, refresh, _id)
     likes = None
     likes_list = []
@@ -667,9 +690,9 @@ def get_user_likes():
 
 @app.route("/user/dislikes", methods=['GET'])
 def get_user_dislikes():
-    access = request.headers.get('access_token')
-    refresh = request.headers.get('refresh_token')
-    _id = request.headers.get('id_token')
+    access = request.headers.get('accessToken')
+    refresh = request.headers.get('refreshToken')
+    _id = request.headers.get('idToken')
     valid, email = verify_user(access, refresh, _id)
     dislikes = None
     dislikes_list = []
@@ -715,9 +738,9 @@ def fetch_mini():
 # Machine Learning endpoint #2
 @app.route("/user/mltwo", methods=['GET'])
 def get_ml_two():
-    access = request.headers.get('access_token')
-    refresh = request.headers.get('refresh_token')
-    _id = request.headers.get('id_token')
+    access = request.headers.get('accessToken')
+    refresh = request.headers.get('refreshToken')
+    _id = request.headers.get('idToken')
     valid, email = verify_user(access, refresh, _id)
     
     ml_two_ids = None
@@ -762,9 +785,9 @@ def get_ml_two():
 # Machine Learning endpoint #3
 @app.route("/user/mlthree", methods=['GET'])
 def get_ml_three():
-    access = request.headers.get('access_token')
-    refresh = request.headers.get('refresh_token')
-    _id = request.headers.get('id_token')
+    access = request.headers.get('accessToken')
+    refresh = request.headers.get('refreshToken')
+    _id = request.headers.get('idToken')
     valid, email = verify_user(access, refresh, _id)
     
     ml_three_ids = None
