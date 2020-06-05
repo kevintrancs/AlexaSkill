@@ -20,7 +20,7 @@ cryptography==1.7.2
 crystalmethod==3.0.0
 cssselect==1.0.3
 dateutils==0.6.6
-Django==1.11.16
+Django==1.11.29
 django-filter==2.0.0
 django-tastypie==0.14.2
 djangorestframework==3.9.0
