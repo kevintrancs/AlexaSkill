@@ -16,7 +16,7 @@ chardet==3.0.4
 Click==7.0
 colorama==0.3.9
 configparser==3.5.0
-cryptography==1.7.2
+cryptography==3.2
 crystalmethod==3.0.0
 cssselect==1.0.3
 dateutils==0.6.6
