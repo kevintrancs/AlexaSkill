@@ -60,7 +60,7 @@ pycparser==2.19
 pycryptodome==3.3.1
 pylint==1.9.3
 pyquery==1.4.0
-pyspark==2.3.2
+pyspark==3.2.2
 python-crontab==2.3.5
 python-dateutil==2.7.3
 python-editor==1.0.4
